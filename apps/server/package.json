@@ -1,0 +1,24 @@
+{
+  "name": "@shiftcrack/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Express API server for ShiftCrack",
+  "scripts": {
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:format": "prisma format"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@shiftcrack/shared": "*",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.0.0",
+    "prisma": "^7.10.0",
+    "typescript": "^5.9.0"
+  }
+}

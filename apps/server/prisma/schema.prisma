@@ -1,0 +1,66 @@
+// Prisma 7 ships the TS-first `prisma-client` generator which requires an
+// explicit output path. Generating into src/generated (instead of the default
+// node_modules location) keeps the client visible in git and immune to npm
+// workspace hoisting quirks in a monorepo.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum CipherModule {
+  CAESAR
+  TRANSPOSITION
+  FREQUENCY
+}
+
+enum SessionStatus {
+  ACTIVE
+  SOLVED
+  FAILED
+  EXPIRED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique // null for anonymous users (hybrid auth)
+  passwordHash String? // bcrypt; accounts only
+  provider     String   @default("anonymous") // "anonymous" | "local"
+  createdAt    DateTime @default(now())
+  gameSessions GameSession[]
+}
+
+model GameSession {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  module        CipherModule
+  difficulty    Difficulty
+  language      String // "uk" | "en" — phrase language, tied to the UI locale
+  ciphertext    String
+  // SHA-256 of the normalized plaintext. The plaintext itself is never
+  // persisted, so even a full DB leak reveals no challenge answers.
+  plaintextHash String
+  cipherParams  Json // shift / permutation key — never exposed via the API
+  status        SessionStatus @default(ACTIVE)
+  attempts      Int           @default(0)
+  hintsUsed     Int           @default(0)
+  score         Int?
+  lockedUntil   DateTime? // anti-bruteforce cooldown after failed attempts
+  startedAt     DateTime      @default(now())
+  solvedAt      DateTime?
+  expiresAt     DateTime // TTL enforced by app logic
+
+  // userId: "list my sessions" lookup; (status, expiresAt): expiration sweeps
+  @@index([userId])
+  @@index([status, expiresAt])
+}
