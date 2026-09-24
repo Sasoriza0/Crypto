@@ -2,15 +2,84 @@ name: ShiftCrack CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
   pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  # SDD §7, job 1: static checks. Prisma client is generated BEFORE typecheck
+  # so `tsc` always sees a client in sync with prisma/schema.prisma, and the
+  # drift check fails the build if the committed generated client is stale.
+  lint-typecheck:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
+    steps:
+      - name: Setup (checkout, Node.js, npm ci)
+        uses: ./.github/actions/setup
 
+      - name: Generate Prisma Client (before typecheck)
+        run: npm run prisma:generate --workspace @shiftcrack/server
+
+      - name: Verify committed Prisma client is in sync
+        run: git diff --exit-code -- apps/server/src/generated
+
+      - name: Build shared contracts (types consumed by server/web)
+        run: npm run build --workspace @shiftcrack/shared
+
+      - name: Lint (eslint, all workspaces)
+        run: npm run lint
+
+      - name: Typecheck (tsc, all workspaces)
+        run: npm run typecheck
+
+  # SDD §7, job 2: vitest for the backend (cipher services, scoring,
+  # normalization). Unit tests need no PostgreSQL instance.
+  test:
+    name: Tests (Vitest)
+    needs: lint-typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup (checkout, Node.js, npm ci)
+        uses: ./.github/actions/setup
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --workspace @shiftcrack/server
+
+      - name: Build shared contracts
+        run: npm run build --workspace @shiftcrack/shared
+
+      - name: Run tests
+        run: npm run test
+
+  # SDD §7, job 3: root build = shared tsc -> server tsc. apps/web (Next.js
+  # build) joins this chain when phase 4.3 lands.
+  build:
+    name: Build (shared + server)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup (checkout, Node.js, npm ci)
+        uses: ./.github/actions/setup
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --workspace @shiftcrack/server
+
+      - name: Build
+        run: npm run build
+
+  # SDD §7, job 4: dependency security gate. Runs against the lockfile only
+  # (no install needed); fails on high/critical advisories.
+  audit:
+    name: npm audit
+    needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,20 +87,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Використовуємо стабільну версію Node.js
-          cache: 'npm'
+          node-version: '24'
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-        working-directory: ./apps/server
-
-      - name: Run backend tests
-        run: npm run test --if-present
-        working-directory: ./apps/server
-
-      - name: Build backend (Smoke Test)
-        run: npm run build --if-present
-        working-directory: ./apps/server
+      - name: Audit dependencies
+        run: npm audit --audit-level=high

@@ -10,7 +10,7 @@
   "scripts": {
     "dev:web": "npm run dev --workspace @shiftcrack/web",
     "dev:server": "npm run dev --workspace @shiftcrack/server",
-    "build": "npm run build --workspace @shiftcrack/shared && npm run build --workspaces --if-present",
+    "build": "npm run build --workspace @shiftcrack/shared && npm run build --workspace @shiftcrack/server",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
@@ -23,5 +23,9 @@
     "prisma@7.10.0": true,
     "@prisma/engines@7.10.0": true,
     "esbuild@0.28.2": true
+  },
+  "overrides": {
+    "mysql2": "3.24.4",
+    "deepmerge-ts": "8.0.2"
   }
 }
