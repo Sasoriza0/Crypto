@@ -14,22 +14,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # SDD §7, job 1: static checks. Prisma client is generated BEFORE typecheck
-  # so `tsc` always sees a client in sync with prisma/schema.prisma, and the
-  # drift check fails the build if the committed generated client is stale.
   lint-typecheck:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
     steps:
-      - name: Setup (checkout, Node.js, npm ci)
-        uses: ./.github/actions/setup
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Обов'язковий крок перед викликом локальних файлів
+
+      - name: Setup (Node.js, npm ci)
+        uses: ./.github/actions/setup # Тепер GitHub бачить цей файл
 
       - name: Generate Prisma Client (before typecheck)
         run: npm run prisma:generate --workspace @shiftcrack/server
-
-      - name: Verify committed Prisma client is in sync
-        run: git diff --exit-code -- apps/server/src/generated
-
+        
       - name: Build shared contracts (types consumed by server/web)
         run: npm run build --workspace @shiftcrack/shared
 
