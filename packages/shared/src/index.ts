@@ -4,34 +4,39 @@ import { z } from 'zod';
  * Shared domain contracts for ShiftCrack.
  *
  * This package is the single source of truth for everything that crosses the
- * wire between the Next.js client and the Express server. Enums are plain
- * string enums so their serialized values stay stable in PostgreSQL records
- * and JSON payloads, and the zod schemas are enforced server-side at the API
- * edge while the client reuses them to fail fast on bad input.
+ * wire between the Next.js client and the Express server. Enums are exported
+ * as const objects with matching literal-union types: their serialized values
+ * stay stable in PostgreSQL records and JSON payloads, and the literal unions
+ * are interchangeable with the Prisma-generated column types on the server.
+ * The zod schemas are enforced server-side at the API edge while the client
+ * reuses them to fail fast on bad input.
  */
 
 // ---------------------------------------------------------------------------
 // Domain enums
 // ---------------------------------------------------------------------------
 
-export enum Difficulty {
-  EASY = 'EASY',
-  MEDIUM = 'MEDIUM',
-  HARD = 'HARD',
-}
+export const Difficulty = {
+  EASY: 'EASY',
+  MEDIUM: 'MEDIUM',
+  HARD: 'HARD',
+} as const;
+export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty];
 
-export enum CipherModule {
-  CAESAR = 'CAESAR',
-  TRANSPOSITION = 'TRANSPOSITION',
-  FREQUENCY = 'FREQUENCY',
-}
+export const CipherModule = {
+  CAESAR: 'CAESAR',
+  TRANSPOSITION: 'TRANSPOSITION',
+  FREQUENCY: 'FREQUENCY',
+} as const;
+export type CipherModule = (typeof CipherModule)[keyof typeof CipherModule];
 
-export enum SessionStatus {
-  ACTIVE = 'ACTIVE',
-  SOLVED = 'SOLVED',
-  FAILED = 'FAILED',
-  EXPIRED = 'EXPIRED',
-}
+export const SessionStatus = {
+  ACTIVE: 'ACTIVE',
+  SOLVED: 'SOLVED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED',
+} as const;
+export type SessionStatus = (typeof SessionStatus)[keyof typeof SessionStatus];
 
 // ---------------------------------------------------------------------------
 // Core validation schemas
