@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate Prisma Client (before typecheck)
         run: npm run prisma:generate --workspace @shiftcrack/server
-        
+
       - name: Build shared contracts (types consumed by server/web)
         run: npm run build --workspace @shiftcrack/shared
 
@@ -43,7 +43,10 @@ jobs:
     needs: lint-typecheck
     runs-on: ubuntu-latest
     steps:
-      - name: Setup (checkout, Node.js, npm ci)
+      - name: Checkout repository
+        uses: actions/checkout@v4 # <-- Додай цей крок сюди
+
+      - name: Setup (Node.js, npm ci)
         uses: ./.github/actions/setup
 
       - name: Generate Prisma Client
@@ -62,7 +65,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Setup (checkout, Node.js, npm ci)
+      - name: Checkout repository
+        uses: actions/checkout@v4 # <-- І обов'язково сюди
+
+      - name: Setup (Node.js, npm ci)
         uses: ./.github/actions/setup
 
       - name: Generate Prisma Client
