@@ -102,6 +102,8 @@ export const GameSessionScalarFieldEnum = {
   ciphertext: 'ciphertext',
   plaintextHash: 'plaintextHash',
   cipherParams: 'cipherParams',
+  contextClue: 'contextClue',
+  contextUsed: 'contextUsed',
   status: 'status',
   attempts: 'attempts',
   hintsUsed: 'hintsUsed',

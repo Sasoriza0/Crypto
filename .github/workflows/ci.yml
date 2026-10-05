@@ -58,10 +58,9 @@ jobs:
       - name: Run tests
         run: npm run test
 
-  # SDD §7, job 3: root build = shared tsc -> server tsc. apps/web (Next.js
-  # build) joins this chain when phase 4.3 lands.
+  # SDD §7, job 3: root build = shared tsc -> server tsc -> web (next build).
   build:
-    name: Build (shared + server)
+    name: Build (shared + server + web)
     needs: test
     runs-on: ubuntu-latest
     steps:

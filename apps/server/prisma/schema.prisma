@@ -66,6 +66,12 @@ model GameSession {
   // persisted, so even a full DB leak reveals no challenge answers.
   plaintextHash String
   cipherParams  Json // shift / permutation key — never exposed via the API
+  // Thematic context of the challenge ("Військовий наказ" etc.). Exposed in
+  // the session meta on EASY, revealable as a hint on MEDIUM, hidden on HARD.
+  contextClue   String?
+  // True once the MEDIUM context hint has been spent (keeps crypto hint
+  // tiers independent of the context spend).
+  contextUsed   Boolean      @default(false)
   status        SessionStatus @default(ACTIVE)
   attempts      Int           @default(0)
   hintsUsed     Int           @default(0)

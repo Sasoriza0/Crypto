@@ -3,7 +3,9 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { errorHandler } from './lib/errors.js';
+import { authRouter } from './routes/auth.js';
 import { gameRouter } from './routes/game.js';
+import { sessionRouter } from './routes/session.js';
 
 /**
  * Express app factory for ShiftCrack.
@@ -15,7 +17,7 @@ import { gameRouter } from './routes/game.js';
  * - global per-IP rate limit (express-rate-limit, env-tunable)
  * - no X-Powered-By, no stack traces in error responses
  *
- * Route modules (auth, game) will be mounted under /api/v1 in later steps.
+ * Route modules (auth, game) are mounted under /api/v1 per SDD §4.
  */
 export function createApp() {
   const app = express();
@@ -65,7 +67,9 @@ export function createApp() {
     res.status(200).json({ status: 'ok', uptime: process.uptime() });
   });
 
+  app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/game', gameRouter);
+  app.use('/api/v1/session', sessionRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not Found' } });

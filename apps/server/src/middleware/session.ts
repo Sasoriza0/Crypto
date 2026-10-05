@@ -1,13 +1,22 @@
 import type { NextFunction, Request, Response } from 'express';
 import { unauthorized } from '../lib/errors.js';
 import { prisma } from '../prisma/client.js';
-import { SESSION_COOKIE } from '../services/session.service.js';
+import {
+  SESSION_COOKIE,
+  sessionCookieOptions,
+  sessionTtlMs,
+  touchSession,
+} from '../services/session.service.js';
 
 /**
  * Session guard (SDD §5): resolves the httpOnly session cookie into a
  * Session row, lazily deletes expired rows, and attaches userId/sessionId
  * to the request. The auth endpoints that ISSUE sessions arrive in
  * step 4.2; this middleware already protects every /api/v1/game route.
+ *
+ * Sliding renewal: once a session passes half its lifetime, the row and
+ * the browser cookie are refreshed for a full TTL — players never get
+ * kicked out in the middle of a long solve.
  */
 
 function parseCookies(header: string | undefined): Record<string, string> {
@@ -23,7 +32,7 @@ function parseCookies(header: string | undefined): Record<string, string> {
   return cookies;
 }
 
-export async function attachSession(req: Request, _res: Response, next: NextFunction): Promise<void> {
+export async function attachSession(req: Request, res: Response, next: NextFunction): Promise<void> {
   const sid = parseCookies(req.headers.cookie)[SESSION_COOKIE];
   if (!sid) {
     next(unauthorized('Authentication required'));
@@ -40,6 +49,13 @@ export async function attachSession(req: Request, _res: Response, next: NextFunc
     await prisma.session.delete({ where: { id: sid } }).catch(() => undefined);
     next(unauthorized('Session invalid or expired'));
     return;
+  }
+
+  // Sliding renewal: refresh the row + cookie once past half the TTL.
+  const ttlMs = sessionTtlMs();
+  if (session.expiresAt.getTime() - Date.now() < ttlMs / 2) {
+    await touchSession(sid, ttlMs).catch(() => undefined);
+    res.cookie(SESSION_COOKIE, sid, sessionCookieOptions(ttlMs));
   }
 
   req.userId = session.userId;

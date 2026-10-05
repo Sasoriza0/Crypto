@@ -11,6 +11,7 @@ export type ApiErrorCode =
   | 'SESSION_LOCKED'
   | 'SESSION_EXPIRED'
   | 'SESSION_NOT_ACTIVE'
+  | 'CONTEXT_UNAVAILABLE'
   | 'INTERNAL';
 
 /**

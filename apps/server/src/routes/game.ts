@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { createGameSessionSchema, sessionIdSchema, submitAttemptSchema } from '@shiftcrack/shared';
+import {
+  createGameSessionSchema,
+  hintRequestSchema,
+  sessionIdSchema,
+  submitAttemptSchema,
+} from '@shiftcrack/shared';
 import * as gameController from '../controllers/game.controller.js';
 import { attemptsLimiter } from '../middleware/rateLimiters.js';
 import { requireAuth } from '../middleware/session.js';
@@ -17,6 +22,7 @@ const sessionParamsSchema = z.object({ id: sessionIdSchema });
 
 gameRouter.use(requireAuth);
 
+gameRouter.get('/modules', gameController.getModules);
 gameRouter.post('/sessions', validate(createGameSessionSchema), gameController.createSession);
 gameRouter.get('/sessions/:id', validate(sessionParamsSchema, 'params'), gameController.getSession);
 gameRouter.post(
@@ -26,5 +32,10 @@ gameRouter.post(
   validate(submitAttemptSchema),
   gameController.submitAttempt,
 );
-gameRouter.post('/sessions/:id/hints', validate(sessionParamsSchema, 'params'), gameController.requestHint);
+gameRouter.post(
+  '/sessions/:id/hints',
+  validate(sessionParamsSchema, 'params'),
+  validate(hintRequestSchema),
+  gameController.requestHint,
+);
 gameRouter.post('/sessions/:id/abandon', validate(sessionParamsSchema, 'params'), gameController.abandonSession);

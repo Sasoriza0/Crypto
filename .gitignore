@@ -32,3 +32,6 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Design references
+_v0_design_reference/

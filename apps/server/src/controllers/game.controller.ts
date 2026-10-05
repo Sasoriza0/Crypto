@@ -1,7 +1,8 @@
 import type { Request, RequestHandler } from 'express';
-import type { CreateGameSessionInput } from '@shiftcrack/shared';
+import type { CreateGameSessionInput, HintRequestInput } from '@shiftcrack/shared';
 import { ApiError } from '../lib/errors.js';
 import * as gameService from '../services/game.service.js';
+import { listModules } from '../services/modules.service.js';
 
 /**
  * Thin HTTP adapters (SDD §8.3 step 4.1): parse nothing, apply no business
@@ -28,8 +29,13 @@ export const submitAttempt: RequestHandler = async (req, res) => {
   res.json(await gameService.submitAttempt(req.params.id as string, userIdOf(req), answer));
 };
 
+export const getModules: RequestHandler = async (_req, res) => {
+  res.json({ modules: listModules() });
+};
+
 export const requestHint: RequestHandler = async (req, res) => {
-  res.json(await gameService.requestHint(req.params.id as string, userIdOf(req)));
+  const { kind, substitution } = (req.body ?? {}) as HintRequestInput;
+  res.json(await gameService.requestHint(req.params.id as string, userIdOf(req), kind, substitution));
 };
 
 export const abandonSession: RequestHandler = async (req, res) => {

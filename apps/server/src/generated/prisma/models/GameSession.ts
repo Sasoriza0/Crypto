@@ -46,6 +46,8 @@ export type GameSessionMinAggregateOutputType = {
   language: string | null
   ciphertext: string | null
   plaintextHash: string | null
+  contextClue: string | null
+  contextUsed: boolean | null
   status: $Enums.SessionStatus | null
   attempts: number | null
   hintsUsed: number | null
@@ -64,6 +66,8 @@ export type GameSessionMaxAggregateOutputType = {
   language: string | null
   ciphertext: string | null
   plaintextHash: string | null
+  contextClue: string | null
+  contextUsed: boolean | null
   status: $Enums.SessionStatus | null
   attempts: number | null
   hintsUsed: number | null
@@ -83,6 +87,8 @@ export type GameSessionCountAggregateOutputType = {
   ciphertext: number
   plaintextHash: number
   cipherParams: number
+  contextClue: number
+  contextUsed: number
   status: number
   attempts: number
   hintsUsed: number
@@ -115,6 +121,8 @@ export type GameSessionMinAggregateInputType = {
   language?: true
   ciphertext?: true
   plaintextHash?: true
+  contextClue?: true
+  contextUsed?: true
   status?: true
   attempts?: true
   hintsUsed?: true
@@ -133,6 +141,8 @@ export type GameSessionMaxAggregateInputType = {
   language?: true
   ciphertext?: true
   plaintextHash?: true
+  contextClue?: true
+  contextUsed?: true
   status?: true
   attempts?: true
   hintsUsed?: true
@@ -152,6 +162,8 @@ export type GameSessionCountAggregateInputType = {
   ciphertext?: true
   plaintextHash?: true
   cipherParams?: true
+  contextClue?: true
+  contextUsed?: true
   status?: true
   attempts?: true
   hintsUsed?: true
@@ -258,6 +270,8 @@ export type GameSessionGroupByOutputType = {
   ciphertext: string
   plaintextHash: string
   cipherParams: runtime.JsonValue
+  contextClue: string | null
+  contextUsed: boolean
   status: $Enums.SessionStatus
   attempts: number
   hintsUsed: number
@@ -300,6 +314,8 @@ export type GameSessionWhereInput = {
   ciphertext?: Prisma.StringFilter<"GameSession"> | string
   plaintextHash?: Prisma.StringFilter<"GameSession"> | string
   cipherParams?: Prisma.JsonFilter<"GameSession">
+  contextClue?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  contextUsed?: Prisma.BoolFilter<"GameSession"> | boolean
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
@@ -320,6 +336,8 @@ export type GameSessionOrderByWithRelationInput = {
   ciphertext?: Prisma.SortOrder
   plaintextHash?: Prisma.SortOrder
   cipherParams?: Prisma.SortOrder
+  contextClue?: Prisma.SortOrderInput | Prisma.SortOrder
+  contextUsed?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
@@ -343,6 +361,8 @@ export type GameSessionWhereUniqueInput = Prisma.AtLeast<{
   ciphertext?: Prisma.StringFilter<"GameSession"> | string
   plaintextHash?: Prisma.StringFilter<"GameSession"> | string
   cipherParams?: Prisma.JsonFilter<"GameSession">
+  contextClue?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  contextUsed?: Prisma.BoolFilter<"GameSession"> | boolean
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
@@ -363,6 +383,8 @@ export type GameSessionOrderByWithAggregationInput = {
   ciphertext?: Prisma.SortOrder
   plaintextHash?: Prisma.SortOrder
   cipherParams?: Prisma.SortOrder
+  contextClue?: Prisma.SortOrderInput | Prisma.SortOrder
+  contextUsed?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
@@ -390,6 +412,8 @@ export type GameSessionScalarWhereWithAggregatesInput = {
   ciphertext?: Prisma.StringWithAggregatesFilter<"GameSession"> | string
   plaintextHash?: Prisma.StringWithAggregatesFilter<"GameSession"> | string
   cipherParams?: Prisma.JsonWithAggregatesFilter<"GameSession">
+  contextClue?: Prisma.StringNullableWithAggregatesFilter<"GameSession"> | string | null
+  contextUsed?: Prisma.BoolWithAggregatesFilter<"GameSession"> | boolean
   status?: Prisma.EnumSessionStatusWithAggregatesFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntWithAggregatesFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntWithAggregatesFilter<"GameSession"> | number
@@ -408,6 +432,8 @@ export type GameSessionCreateInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -428,6 +454,8 @@ export type GameSessionUncheckedCreateInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -446,6 +474,8 @@ export type GameSessionUpdateInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -466,6 +496,8 @@ export type GameSessionUncheckedUpdateInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -485,6 +517,8 @@ export type GameSessionCreateManyInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -503,6 +537,8 @@ export type GameSessionUpdateManyMutationInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -522,6 +558,8 @@ export type GameSessionUncheckedUpdateManyInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -551,6 +589,8 @@ export type GameSessionCountOrderByAggregateInput = {
   ciphertext?: Prisma.SortOrder
   plaintextHash?: Prisma.SortOrder
   cipherParams?: Prisma.SortOrder
+  contextClue?: Prisma.SortOrder
+  contextUsed?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
@@ -575,6 +615,8 @@ export type GameSessionMaxOrderByAggregateInput = {
   language?: Prisma.SortOrder
   ciphertext?: Prisma.SortOrder
   plaintextHash?: Prisma.SortOrder
+  contextClue?: Prisma.SortOrder
+  contextUsed?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
@@ -593,6 +635,8 @@ export type GameSessionMinOrderByAggregateInput = {
   language?: Prisma.SortOrder
   ciphertext?: Prisma.SortOrder
   plaintextHash?: Prisma.SortOrder
+  contextClue?: Prisma.SortOrder
+  contextUsed?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
@@ -659,6 +703,10 @@ export type EnumDifficultyFieldUpdateOperationsInput = {
   set?: $Enums.Difficulty
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type EnumSessionStatusFieldUpdateOperationsInput = {
   set?: $Enums.SessionStatus
 }
@@ -691,6 +739,8 @@ export type GameSessionCreateWithoutUserInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -709,6 +759,8 @@ export type GameSessionUncheckedCreateWithoutUserInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -757,6 +809,8 @@ export type GameSessionScalarWhereInput = {
   ciphertext?: Prisma.StringFilter<"GameSession"> | string
   plaintextHash?: Prisma.StringFilter<"GameSession"> | string
   cipherParams?: Prisma.JsonFilter<"GameSession">
+  contextClue?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  contextUsed?: Prisma.BoolFilter<"GameSession"> | boolean
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
@@ -775,6 +829,8 @@ export type GameSessionCreateManyUserInput = {
   ciphertext: string
   plaintextHash: string
   cipherParams: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: string | null
+  contextUsed?: boolean
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
@@ -793,6 +849,8 @@ export type GameSessionUpdateWithoutUserInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -811,6 +869,8 @@ export type GameSessionUncheckedUpdateWithoutUserInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -829,6 +889,8 @@ export type GameSessionUncheckedUpdateManyWithoutUserInput = {
   ciphertext?: Prisma.StringFieldUpdateOperationsInput | string
   plaintextHash?: Prisma.StringFieldUpdateOperationsInput | string
   cipherParams?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  contextClue?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contextUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
@@ -850,6 +912,8 @@ export type GameSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   ciphertext?: boolean
   plaintextHash?: boolean
   cipherParams?: boolean
+  contextClue?: boolean
+  contextUsed?: boolean
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
@@ -870,6 +934,8 @@ export type GameSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   ciphertext?: boolean
   plaintextHash?: boolean
   cipherParams?: boolean
+  contextClue?: boolean
+  contextUsed?: boolean
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
@@ -890,6 +956,8 @@ export type GameSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   ciphertext?: boolean
   plaintextHash?: boolean
   cipherParams?: boolean
+  contextClue?: boolean
+  contextUsed?: boolean
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
@@ -910,6 +978,8 @@ export type GameSessionSelectScalar = {
   ciphertext?: boolean
   plaintextHash?: boolean
   cipherParams?: boolean
+  contextClue?: boolean
+  contextUsed?: boolean
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
@@ -920,7 +990,7 @@ export type GameSessionSelectScalar = {
   expiresAt?: boolean
 }
 
-export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "module" | "difficulty" | "language" | "ciphertext" | "plaintextHash" | "cipherParams" | "status" | "attempts" | "hintsUsed" | "score" | "lockedUntil" | "startedAt" | "solvedAt" | "expiresAt", ExtArgs["result"]["gameSession"]>
+export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "module" | "difficulty" | "language" | "ciphertext" | "plaintextHash" | "cipherParams" | "contextClue" | "contextUsed" | "status" | "attempts" | "hintsUsed" | "score" | "lockedUntil" | "startedAt" | "solvedAt" | "expiresAt", ExtArgs["result"]["gameSession"]>
 export type GameSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -945,6 +1015,8 @@ export type $GameSessionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     ciphertext: string
     plaintextHash: string
     cipherParams: runtime.JsonValue
+    contextClue: string | null
+    contextUsed: boolean
     status: $Enums.SessionStatus
     attempts: number
     hintsUsed: number
@@ -1385,6 +1457,8 @@ export interface GameSessionFieldRefs {
   readonly ciphertext: Prisma.FieldRef<"GameSession", 'String'>
   readonly plaintextHash: Prisma.FieldRef<"GameSession", 'String'>
   readonly cipherParams: Prisma.FieldRef<"GameSession", 'Json'>
+  readonly contextClue: Prisma.FieldRef<"GameSession", 'String'>
+  readonly contextUsed: Prisma.FieldRef<"GameSession", 'Boolean'>
   readonly status: Prisma.FieldRef<"GameSession", 'SessionStatus'>
   readonly attempts: Prisma.FieldRef<"GameSession", 'Int'>
   readonly hintsUsed: Prisma.FieldRef<"GameSession", 'Int'>
