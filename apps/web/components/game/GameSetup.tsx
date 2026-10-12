@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import type { CipherModule, Difficulty } from '@shiftcrack/shared';
+import type { CipherModule } from '@shiftcrack/shared';
+import { MetaLabel } from '@/components/ui/MetaLabel';
 import { useT } from '@/lib/i18n';
+import { difficultyForModule, missionNumberForModule } from '@/lib/missions';
 import { useGameStore } from '@/store/game.store';
 import { useI18nStore } from '@/store/i18n.store';
 
-const DIFFICULTIES: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
-
 /**
- * Pre-game screen: difficulty picker + start. The phrase language follows
+ * Pre-game screen: a stamped mission brief. The difficulty picker is gone —
+ * each module IS a difficulty level (CAESAR→EASY, TRANSPOSITION→MEDIUM,
+ * FREQUENCY→HARD, see lib/missions.ts). The phrase language still follows
  * the UI locale (SDD §3: language = UI language).
  */
 export function GameSetup({ module }: { module: CipherModule }) {
@@ -19,11 +21,13 @@ export function GameSetup({ module }: { module: CipherModule }) {
   const error = useGameStore((s) => s.error);
   const errorCode = useGameStore((s) => s.errorCode);
 
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const difficulty = difficultyForModule(module);
+  const slug = module.toLowerCase();
+
   const onStart = async () => {
-    if (!difficulty || busy) return;
+    if (busy) return;
     setBusy(true);
     try {
       await startGame(module, difficulty, locale);
@@ -35,39 +39,44 @@ export function GameSetup({ module }: { module: CipherModule }) {
   };
 
   return (
-    <div className="mt-8 max-w-xl">
-      <h2 className="text-lg font-semibold">{t('game.difficulty')}</h2>
-      <div className="mt-3 flex gap-2">
-        {DIFFICULTIES.map((d) => (
-          <button
-            key={d}
-            type="button"
-            onClick={() => setDifficulty(d)}
-            className={`rounded-md border px-4 py-2 text-sm font-medium transition ${
-              difficulty === d
-                ? 'border-sky-500 bg-sky-600 text-white'
-                : 'border-slate-300 hover:border-sky-400 dark:border-slate-700'
-            }`}
-          >
-            {t(`game.difficulty.${d.toLowerCase()}`)}
-          </button>
-        ))}
+    <div className="mt-2 max-w-xl">
+      <div className="border-2 border-ink bg-card p-6 shadow-[5px_5px_0_rgba(66,54,36,0.16)] sm:p-8">
+        <div className="flex items-start justify-between border-b border-tan pb-4">
+          <div>
+            <MetaLabel>{t('setup.brief')}</MetaLabel>
+            <h2 className="mt-2 font-serif text-3xl font-bold">{t(`modules.${slug}.name`)}</h2>
+          </div>
+          <span className="rotate-[-2deg] border border-red-700 px-2 py-1 font-mono text-[9px] font-bold tracking-wider text-red-700">
+            {t(`menu.threat.${difficulty.toLowerCase()}`)}
+          </span>
+        </div>
+
+        <p className="mt-5 font-mono text-xs leading-5 text-fade-dark">{t(`menu.detail.${slug}`)}</p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-tan pt-5">
+          <span className="font-mono text-xs font-bold text-red-700">
+            {t('menu.mission')} {missionNumberForModule(module)}
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-fade">
+            {t(`menu.subtitle.${slug}`)}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void onStart()}
+          disabled={busy}
+          className="mt-6 inline-flex w-full items-center justify-center gap-3 border-2 border-ink bg-ink px-4 py-3 font-mono text-xs font-bold uppercase tracking-[0.16em] text-paper transition hover:border-red-700 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {busy ? t('game.starting') : t('menu.initiate')} <span aria-hidden>→</span>
+        </button>
+
+        {error && (
+          <p className="mt-4 font-mono text-sm text-red-700">
+            {t(`errors.${errorCode}`) !== `errors.${errorCode}` ? t(`errors.${errorCode}`) : error}
+          </p>
+        )}
       </div>
-
-      <button
-        type="button"
-        onClick={() => void onStart()}
-        disabled={!difficulty || busy}
-        className="mt-6 rounded-md bg-sky-600 px-5 py-2 font-medium text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {busy ? t('game.starting') : t('game.start')}
-      </button>
-
-      {error && (
-        <p className="mt-4 text-sm text-red-600 dark:text-red-400">
-          {t(`errors.${errorCode}`) !== `errors.${errorCode}` ? t(`errors.${errorCode}`) : error}
-        </p>
-      )}
     </div>
   );
 }

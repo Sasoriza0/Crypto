@@ -28,12 +28,12 @@ export function TranspositionPanel({ ciphertext, textLength, onUseCandidate }: T
   }, [ciphertext]);
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-3 space-y-4">
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('game.ciphertext')}
         </h2>
-        <p className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-100 p-4 font-mono text-lg dark:bg-slate-900">
+        <p className="mt-2 whitespace-pre-wrap break-words border border-ink bg-inset p-4 font-mono text-lg">
           {ciphertext}
         </p>
       </div>
@@ -41,17 +41,17 @@ export function TranspositionPanel({ ciphertext, textLength, onUseCandidate }: T
       <RouteGrid ciphertext={ciphertext} textLength={textLength} onCandidateChange={setCandidate} />
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('game.candidate')}
         </h2>
-        <p className="mt-2 min-h-14 whitespace-pre-wrap break-words rounded-lg border border-slate-200 p-4 font-mono text-lg dark:border-slate-800">
-          {candidate || <span className="text-slate-400 dark:text-slate-600">{t('transposition.emptyTrace')}</span>}
+        <p className="mt-2 min-h-14 whitespace-pre-wrap break-words border border-dashed border-red-700 bg-card p-4 font-mono text-lg">
+          {candidate || <span className="text-fade">{t('transposition.emptyTrace')}</span>}
         </p>
         <button
           type="button"
           onClick={() => onUseCandidate(candidate)}
           disabled={!candidate}
-          className="mt-2 rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+          className="mt-2 border border-ink px-3 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t('game.useCandidate')}
         </button>

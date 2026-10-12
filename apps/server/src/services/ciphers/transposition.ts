@@ -3,13 +3,16 @@ import { randomIntInRange } from '../../lib/text.js';
 
 /**
  * Route cipher (Phase 6): the plaintext is written into a cols×rows table
- * following a classic ROUTE, the table is padded with a filler LETTER (the
- * alphabet's last letter) and then read row-major. The ciphertext is
- * always a solid rectangular letter stream of `rows × cols` cells, so the
- * correct column count is one of the divisors of the ciphertext length —
- * exactly the divisor test real route-cipher cryptanalysis starts with.
- * `cipherParams.length` keeps the original text length so decryption can
- * cut the padding off exactly.
+ * following a classic ROUTE and read row-major. The ciphertext is always
+ * a solid rectangular letter stream of `rows × cols` cells, so the correct
+ * column count is one of the divisors of the ciphertext length — exactly
+ * the divisor test real route-cipher cryptanalysis starts with.
+ *
+ * Grid generation is INVERTED: the dimensions come first (random 3–7
+ * columns × random 3–7 rows), then the text is fit to the cols×rows grid
+ * (truncated or padded with traditional dummy letters — see the phrase
+ * service). `cipherParams.length` keeps the REAL content length so
+ * decryption can cut the dummies off exactly.
  *
  * Every route is a CONTINUOUS path: consecutive cells always share an
  * edge, so the player can trace the whole route in one uninterrupted drag
@@ -29,26 +32,43 @@ export type RouteKind = (typeof ROUTES)[keyof typeof ROUTES];
 export interface RouteParams {
   route: RouteKind;
   cols: number;
+  rows: number;
 }
 
 export interface RouteParamsRange {
   cols: { min: number; max: number };
+  rows: { min: number; max: number };
   routes: RouteKind[];
 }
 
-/** Difficulty scaling: more columns and trickier routes as it gets harder. */
+/** Both grid dimensions roll independently in 3–7 — any rectangle works. */
+const GRID_DIM_MIN = 3;
+const GRID_DIM_MAX = 7;
+
+/**
+ * Difficulty scaling: the grid size is random (3–7 × 3–7) at every level —
+ * difficulty escalates the ROUTE pool instead (snakes → + clockwise spiral
+ * → + counterclockwise spiral).
+ */
 export function getRouteParamsRange(difficulty: Difficulty): RouteParamsRange {
+  const dims = { min: GRID_DIM_MIN, max: GRID_DIM_MAX };
   switch (difficulty) {
     case 'EASY':
-      return { cols: { min: 3, max: 4 }, routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE] };
+      return {
+        cols: { ...dims },
+        rows: { ...dims },
+        routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE],
+      };
     case 'MEDIUM':
       return {
-        cols: { min: 4, max: 5 },
+        cols: { ...dims },
+        rows: { ...dims },
         routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE, ROUTES.SPIRAL_CW],
       };
     case 'HARD':
       return {
-        cols: { min: 5, max: 7 },
+        cols: { ...dims },
+        rows: { ...dims },
         routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE, ROUTES.SPIRAL_CW, ROUTES.SPIRAL_CCW],
       };
     default:
@@ -57,9 +77,10 @@ export function getRouteParamsRange(difficulty: Difficulty): RouteParamsRange {
 }
 
 export function generateRouteParams(difficulty: Difficulty): RouteParams {
-  const { cols, routes } = getRouteParamsRange(difficulty);
+  const { cols, rows, routes } = getRouteParamsRange(difficulty);
   return {
     cols: randomIntInRange(cols.min, cols.max),
+    rows: randomIntInRange(rows.min, rows.max),
     route: routes[randomIntInRange(0, routes.length - 1)]!,
   };
 }

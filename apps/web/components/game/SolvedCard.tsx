@@ -1,5 +1,6 @@
 'use client';
 
+import { MetaLabel } from '@/components/ui/MetaLabel';
 import { useT } from '@/lib/i18n';
 import { useGameStore } from '@/store/game.store';
 
@@ -14,22 +15,35 @@ export function SolvedCard() {
   const score = session?.score ?? (lastAttempt?.correct ? lastAttempt.score : 0);
 
   return (
-    <div className="mt-8 max-w-xl rounded-xl border border-emerald-300 bg-emerald-50 p-6 dark:border-emerald-800 dark:bg-emerald-950">
-      <h2 className="text-2xl font-bold text-emerald-800 dark:text-emerald-300">
-        {t('game.solved.title')}
-      </h2>
+    <div className="mt-2 max-w-xl border-2 border-ink bg-card p-6 shadow-[5px_5px_0_rgba(66,54,36,0.16)] sm:p-8">
+      <div className="flex items-start justify-between border-b border-tan pb-4">
+        <div>
+          <MetaLabel>{t('setup.brief')}</MetaLabel>
+          <h2 className="mt-2 font-serif text-3xl font-bold">{t('game.solved.title')}</h2>
+        </div>
+        <span className="rotate-[-4deg] border-2 border-red-700 px-2 py-1 font-mono text-[10px] font-bold tracking-[0.2em] text-red-700">
+          {t('game.solved.stamp')}
+        </span>
+      </div>
+
       {/* On a resumed session the plaintext is not re-sent (plaintext
           isolation, SDD §5) — show it only when we just solved. */}
-      {plaintext && <p className="mt-4 break-words font-mono text-lg">{plaintext}</p>}
-      <p className="mt-4 text-sm text-emerald-800 dark:text-emerald-300">
-        {t('game.solved.score')}: <strong>{score}</strong>
+      {plaintext && (
+        <p className="mt-5 whitespace-pre-wrap break-words border border-dashed border-red-700 bg-inset p-4 font-mono text-lg">
+          {plaintext}
+        </p>
+      )}
+
+      <p className="mt-4 font-mono text-xs uppercase tracking-widest text-fade">
+        {t('game.solved.score')}: <strong className="text-red-700">{score}</strong>
       </p>
+
       <button
         type="button"
         onClick={reset}
-        className="mt-6 rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500"
+        className="mt-6 inline-flex items-center justify-center gap-3 border-2 border-ink bg-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-paper transition hover:border-red-700 hover:bg-red-700"
       >
-        {t('game.solved.playAgain')}
+        {t('game.solved.playAgain')} <span aria-hidden>→</span>
       </button>
     </div>
   );

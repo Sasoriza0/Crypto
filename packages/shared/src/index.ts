@@ -27,6 +27,7 @@ export const CipherModule = {
   CAESAR: 'CAESAR',
   TRANSPOSITION: 'TRANSPOSITION',
   FREQUENCY: 'FREQUENCY',
+  VIGENERE: 'VIGENERE',
 } as const;
 export type CipherModule = (typeof CipherModule)[keyof typeof CipherModule];
 

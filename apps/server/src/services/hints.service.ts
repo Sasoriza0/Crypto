@@ -19,21 +19,31 @@ import type { RouteKind } from './ciphers/transposition.js';
  * - FREQUENCY: one concrete cipher→plain substitution per tier, preferring
  *   letters the player currently maps wrong (when the client submits its
  *   guesses).
+ * - VIGENERE: tier 1 → key length (the Kasiski goal); tier 2 → the first
+ *   key letter (the first slider of the key-fitting tool); tier 3 → first
+ *   plaintext word.
  *
  * On MEDIUM the player may additionally spend one hint on the thematic
  * context clue (stored on the session row); it is priced like any hint
  * but does not advance the crypto tiers (see buildContextHint).
  */
 
-export function getMaxHints(difficulty: Difficulty): number {
-  switch (difficulty) {
-    case 'EASY':
-      return 3;
-    case 'MEDIUM':
-      return 2;
-    case 'HARD':
-      return 1;
-  }
+export function getMaxHints(difficulty: Difficulty, module?: CipherModule): number {
+  const base = (() => {
+    switch (difficulty) {
+      case 'EASY':
+        return 3;
+      case 'MEDIUM':
+        return 2;
+      case 'HARD':
+        return 1;
+    }
+  })();
+  // VIGENERE is the hardest mission (Kasiski period discovery + per-position
+  // key fitting), so even at HARD it gets at least two crypto tiers:
+  // tier 1 → key length, tier 2 → first key letter.
+  if (module === 'VIGENERE') return Math.max(base, 2);
+  return base;
 }
 
 interface CaesarHintMessages {
@@ -78,6 +88,16 @@ const TRANSPOSITION_COLUMNS_MESSAGES: Record<Language, (cols: number) => string>
 const TRANSPOSITION_ROUTE_MESSAGES: Record<Language, (route: string) => string> = {
   uk: (route) => `Таблицю було заповнено маршрутом: «${route}».`,
   en: (route) => `The table was filled along the route: "${route}".`,
+};
+
+const VIGENERE_KEY_LENGTH_MESSAGES: Record<Language, (length: number) => string> = {
+  uk: (length) => `Довжина ключа Віженера: ${length} літер.`,
+  en: (length) => `The Vigenère key contains ${length} letters.`,
+};
+
+const VIGENERE_KEY_LETTER_MESSAGES: Record<Language, (letter: string, shift: number) => string> = {
+  uk: (letter, shift) => `Перша літера ключа — «${letter}» (зсув ${shift}).`,
+  en: (letter, shift) => `The first key letter is "${letter}" (shift ${shift}).`,
 };
 
 const SUBSTITUTION_MESSAGES: Record<Language, (cipherLetter: string, plainLetter: string) => string> = {
@@ -222,6 +242,31 @@ export function buildContextHint(language: Language, clue: string): string {
   return CONTEXT_MESSAGES[language](clue);
 }
 
+/**
+ * VIGENERE: the puzzle is the key — its length (found via Kasiski) and
+ * then its letters (one Caesar slider each). Tier 1 reveals the key
+ * length; tier 2 reveals the first key letter with its shift; tier 3
+ * reveals the first plaintext word.
+ */
+function buildVigenereHint(input: HintInput): string {
+  const { language, cipherParams, tier } = input;
+  const key = typeof cipherParams.key === 'string' ? cipherParams.key : '';
+
+  if (tier === 1 || key.length === 0) {
+    return VIGENERE_KEY_LENGTH_MESSAGES[language](key.length);
+  }
+
+  if (tier === 2) {
+    const alphabet = getAlphabet(language);
+    const shift = alphabet.indexOf(key[0]!);
+    return VIGENERE_KEY_LETTER_MESSAGES[language](key[0]!, shift);
+  }
+
+  const plaintext = decryptCiphertext(input.ciphertext, 'VIGENERE', cipherParams, language);
+  const words = plaintext.split(' ');
+  return CAESAR_MESSAGES[language].firstWord(words[0] ?? '?');
+}
+
 /** Fully isolated dispatch: each module gets only its own hint logic. */
 export function buildHint(input: HintInput): string {
   switch (input.module) {
@@ -231,5 +276,7 @@ export function buildHint(input: HintInput): string {
       return buildTranspositionHint(input);
     case 'FREQUENCY':
       return buildFrequencyHint(input);
+    case 'VIGENERE':
+      return buildVigenereHint(input);
   }
 }

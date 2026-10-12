@@ -6,10 +6,10 @@ import { saveScratchpad, useScratchpadStore } from '@/store/scratchpad.store';
 
 /**
  * Global scratchpad (Phase 6): a floating button toggles a slide-out
- * notebook docked to the right edge. On large screens the game content
- * shifts left while it is open, so the notes never cover the workspace.
- * The text autosaves (debounced) to localStorage under the current
- * session id.
+ * notebook docked to the right edge. The drawer is a pure overlay —
+ * `fixed` over the dossier, so opening it never reflows or squeezes the
+ * game board. The text autosaves (debounced) to localStorage under the
+ * current session id.
  */
 export function Scratchpad() {
   const t = useT();
@@ -36,7 +36,7 @@ export function Scratchpad() {
         <button
           type="button"
           onClick={toggle}
-          className="fixed bottom-4 right-4 z-40 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium shadow-lg hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+          className="fixed bottom-4 right-4 z-40 border-2 border-ink bg-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-paper shadow-[4px_4px_0_rgba(66,54,36,0.16)] transition hover:border-red-700 hover:bg-red-700"
         >
           {t('scratchpad.open')}
         </button>
@@ -44,17 +44,19 @@ export function Scratchpad() {
 
       <aside
         aria-label={t('scratchpad.title')}
-        className={`fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col border-l border-slate-200 bg-white shadow-xl transition-transform duration-200 dark:border-slate-700 dark:bg-slate-900 ${
+        className={`fixed right-0 top-0 z-50 flex h-full w-80 max-w-[85vw] flex-col border-l border-tan bg-paper text-ink shadow-[-16px_0_40px_rgba(20,15,5,0.35)] transition-transform duration-200 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-          <h2 className="text-sm font-semibold">{t('scratchpad.title')}</h2>
+        <div className="flex items-center justify-between border-b border-tan px-4 py-3">
+          <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
+            {t('scratchpad.title')}
+          </h2>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label={t('scratchpad.close')}
-            className="rounded px-2 py-0.5 text-lg leading-none text-slate-500 hover:text-slate-900 dark:hover:text-white"
+            className="border border-ink px-2 py-0.5 font-mono text-xs leading-none text-ink transition hover:bg-inset"
           >
             ✕
           </button>
@@ -66,7 +68,7 @@ export function Scratchpad() {
             if (e.key === 'Escape') setOpen(false);
           }}
           placeholder={t('scratchpad.placeholder')}
-          className="min-h-0 flex-1 resize-none bg-transparent p-4 font-mono text-sm leading-6 outline-none"
+          className="min-h-0 flex-1 resize-none bg-transparent p-4 font-mono text-sm leading-6 text-ink outline-none placeholder:text-fade"
         />
       </aside>
     </>

@@ -10,6 +10,12 @@ import {
   routeDecrypt,
   routeEncrypt,
 } from '../src/services/ciphers/transposition.js';
+import {
+  generateVigenereKey,
+  getVigenereKeyRange,
+  vigenereDecrypt,
+  vigenereEncrypt,
+} from '../src/services/ciphers/vigenere.js';
 
 describe('caesar cipher', () => {
   it('round-trips on the English alphabet for every shift', () => {
@@ -81,21 +87,27 @@ describe('route cipher', () => {
     expect(routeEncrypt('abcdef', 3, ROUTES.HORIZONTAL_SNAKE, 'x')).toBe('abcfed');
   });
 
-  it('generates route params within the SDD difficulty ranges', () => {
+  it('generates route params: random 3–7 columns and rows at every difficulty', () => {
     for (let i = 0; i < 50; i++) {
       const easy = generateRouteParams('EASY');
       expect(easy.cols).toBeGreaterThanOrEqual(3);
-      expect(easy.cols).toBeLessThanOrEqual(4);
+      expect(easy.cols).toBeLessThanOrEqual(7);
+      expect(easy.rows).toBeGreaterThanOrEqual(3);
+      expect(easy.rows).toBeLessThanOrEqual(7);
       expect(getRouteParamsRange('EASY').routes).toContain(easy.route);
 
       const medium = generateRouteParams('MEDIUM');
-      expect(medium.cols).toBeGreaterThanOrEqual(4);
-      expect(medium.cols).toBeLessThanOrEqual(5);
+      expect(medium.cols).toBeGreaterThanOrEqual(3);
+      expect(medium.cols).toBeLessThanOrEqual(7);
+      expect(medium.rows).toBeGreaterThanOrEqual(3);
+      expect(medium.rows).toBeLessThanOrEqual(7);
       expect(getRouteParamsRange('MEDIUM').routes).toContain(medium.route);
 
       const hard = generateRouteParams('HARD');
-      expect(hard.cols).toBeGreaterThanOrEqual(5);
+      expect(hard.cols).toBeGreaterThanOrEqual(3);
       expect(hard.cols).toBeLessThanOrEqual(7);
+      expect(hard.rows).toBeGreaterThanOrEqual(3);
+      expect(hard.rows).toBeLessThanOrEqual(7);
       expect(getRouteParamsRange('HARD').routes).toContain(hard.route);
     }
   });
@@ -197,5 +209,50 @@ describe('substitution cipher', () => {
   it('produces a permutation of the alphabet', () => {
     const cipherAlphabet = generateSubstitution(UK_ALPHABET);
     expect([...cipherAlphabet].sort().join('')).toBe([...UK_ALPHABET].sort().join(''));
+  });
+});
+
+describe('vigenere cipher', () => {
+  it('round-trips on the English alphabet (classic lemon example)', () => {
+    const text = 'attack at dawn';
+    const key = 'lemon';
+    expect(vigenereEncrypt(text, key, EN_ALPHABET)).toBe('lxfopv ef rnhr');
+    expect(vigenereDecrypt(vigenereEncrypt(text, key, EN_ALPHABET), key, EN_ALPHABET)).toBe(text);
+  });
+
+  it('round-trips on the Ukrainian alphabet', () => {
+    const text = 'слава україні';
+    const key = 'ключ';
+    expect(vigenereDecrypt(vigenereEncrypt(text, key, UK_ALPHABET), key, UK_ALPHABET)).toBe(text);
+  });
+
+  it('keeps spaces untouched and does not advance the key over them', () => {
+    const encrypted = vigenereEncrypt('attack at dawn', 'lemon', EN_ALPHABET);
+    expect(encrypted).toMatch(/ /);
+    expect(vigenereDecrypt(encrypted, 'lemon', EN_ALPHABET)).toBe('attack at dawn');
+  });
+
+  it('shifts each position by the repeating key letters', () => {
+    expect(vigenereEncrypt('aaaaaaaaaa', 'ab', EN_ALPHABET)).toBe('ababababab');
+  });
+
+  it('uses the difficulty key ranges (EASY 3–4, MEDIUM 5–6, HARD 7–9)', () => {
+    expect(getVigenereKeyRange('EASY')).toEqual({ min: 3, max: 4 });
+    expect(getVigenereKeyRange('MEDIUM')).toEqual({ min: 5, max: 6 });
+    expect(getVigenereKeyRange('HARD')).toEqual({ min: 7, max: 9 });
+  });
+
+  it('generates keys from the language alphabet with the difficulty length', () => {
+    for (const difficulty of ['EASY', 'MEDIUM', 'HARD'] as const) {
+      for (let i = 0; i < 20; i++) {
+        const key = generateVigenereKey('uk', difficulty);
+        const { min, max } = getVigenereKeyRange(difficulty);
+        expect(key.length).toBeGreaterThanOrEqual(min);
+        expect(key.length).toBeLessThanOrEqual(max);
+        for (const ch of key) {
+          expect(UK_ALPHABET.includes(ch)).toBe(true);
+        }
+      }
+    }
   });
 });

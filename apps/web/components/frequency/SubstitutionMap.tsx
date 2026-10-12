@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Language } from '@shiftcrack/shared';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { getAlphabet, letterFrequencies } from '@/lib/ciphers';
 import { useT } from '@/lib/i18n';
 import { conflictingCiphers, useFrequencyStore } from '@/store/frequency.store';
@@ -26,8 +27,8 @@ export function SubstitutionMap({ ciphertext, language }: { ciphertext: string; 
   const conflicts = useMemo(() => conflictingCiphers(mapping), [mapping]);
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800">
-      <h2 className="border-b border-slate-200 px-4 py-2 text-sm font-semibold dark:border-slate-800">
+    <div className="border border-tan bg-card">
+      <h2 className="border-b border-tan px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
         {t('frequency.mapping.title')}
       </h2>
       <div className="max-h-96 overflow-y-auto p-3">
@@ -38,33 +39,27 @@ export function SubstitutionMap({ ciphertext, language }: { ciphertext: string; 
             return (
               <div
                 key={letter}
-                className={`flex items-center gap-1 rounded px-1 py-0.5 ${
+                className={`flex items-center gap-1 px-1 py-0.5 ${
                   entry
                     ? locked
                       ? 'bg-sky-200/60 dark:bg-sky-800/50'
                       : 'bg-amber-200/40 dark:bg-amber-800/30'
                     : ''
-                } ${conflicts.has(letter) ? 'ring-1 ring-red-400 dark:ring-red-500' : ''}`}
+                } ${conflicts.has(letter) ? 'ring-1 ring-red-700' : ''}`}
               >
-                <span className="w-5 shrink-0 text-center font-mono text-base">{letter}</span>
-                <select
+                <span className="w-5 shrink-0 text-center font-mono text-base text-ink">{letter}</span>
+                <CustomSelect
                   value={entry?.plain ?? ''}
-                  onChange={(e) => setDraft(letter, e.target.value)}
-                  className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-1 py-0.5 font-mono text-sm dark:border-slate-700 dark:bg-slate-900"
-                >
-                  <option value="">—</option>
-                  {alphabet.split('').map((plain) => (
-                    <option key={plain} value={plain}>
-                      {plain}
-                    </option>
-                  ))}
-                </select>
+                  options={alphabet.split('')}
+                  onChange={(plain) => setDraft(letter, plain)}
+                  className="flex-1"
+                />
                 <button
                   type="button"
                   onClick={() => (locked ? unlockLetter(letter) : lockLetter(letter))}
                   disabled={!entry}
                   title={locked ? t('frequency.mapping.unlock') : t('frequency.mapping.lock')}
-                  className="px-1 text-sm disabled:opacity-30"
+                  className="px-1 font-mono text-sm text-fade transition hover:text-red-700 disabled:opacity-30"
                 >
                   {locked ? '●' : '○'}
                 </button>
@@ -73,7 +68,7 @@ export function SubstitutionMap({ ciphertext, language }: { ciphertext: string; 
                   onClick={() => clearLetter(letter)}
                   disabled={!entry}
                   title={t('frequency.mapping.clear')}
-                  className="px-1 text-sm text-slate-400 hover:text-red-500 disabled:opacity-30"
+                  className="px-1 font-mono text-sm text-fade transition hover:text-red-700 disabled:opacity-30"
                 >
                   ✕
                 </button>

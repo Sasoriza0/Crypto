@@ -85,9 +85,9 @@ describe('buildHint — other modules stay unchanged', () => {
 });
 
 describe('listModules', () => {
-  it('lists all three modules with their difficulties', () => {
+  it('lists all four modules with their difficulties', () => {
     const modules = listModules();
-    expect(modules.map((m) => m.id).sort()).toEqual(['CAESAR', 'FREQUENCY', 'TRANSPOSITION']);
+    expect(modules.map((m) => m.id).sort()).toEqual(['CAESAR', 'FREQUENCY', 'TRANSPOSITION', 'VIGENERE']);
     for (const module of modules) {
       expect(module.difficulties).toEqual(['EASY', 'MEDIUM', 'HARD']);
       expect(module.slug).toBe(module.id.toLowerCase());

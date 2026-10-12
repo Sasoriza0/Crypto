@@ -21,6 +21,7 @@ enum CipherModule {
   CAESAR
   TRANSPOSITION
   FREQUENCY
+  VIGENERE
 }
 
 enum SessionStatus {

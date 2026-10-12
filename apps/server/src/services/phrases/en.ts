@@ -113,4 +113,54 @@ export const phrases: CorpusPhrase[] = [
     text: 'bridge falls before sunrise',
     context: 'Military order',
   },
+  {
+    difficulty: 'EASY',
+    text: 'the meeting is set for seven in the evening near the old station the password changes every day and your call sign will be spoken three times after the check you must hand the package to the courier in the green hat',
+    context: 'Agent radio message',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the observation post recorded a column of armoured vehicles moving north the highway is blocked by two checkpoints and armed guards patrol near the depot at night an ammunition train arrives to be met by two officers in plain clothes',
+    context: 'Intelligence report',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the diplomatic courier left the capital on the morning train the briefcase is chained to his wrist and only the resident knows the lock code headquarters awaits confirmation no later than midnight otherwise the operation will be cancelled',
+    context: 'Coded dispatch',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the third company takes the hill before dark the second company covers the crossing the artillery stays silent until the signal no green flares company commanders report every half hour with a two word code',
+    context: 'Military order',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'in the middle ages only monks and royal secretaries were trusted with ciphers simple shifts of the alphabet seemed a marvel to spies of neighbouring courts and intercepted letters were read by candlelight all night long',
+    context: 'Historical note',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the printing press works in a cellar under the butcher shop the copies are hidden in sacks of flour and the leaflets go out at dawn on bicycles informers stand on every corner so all passwords change at midnight',
+    context: 'Underground message',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the enemy radio station broadcasts from the forest on frequency forty two they encrypt orders with a simple shift and repeat the key every three days intercepted sessions are recorded on tape and sent to headquarters each evening',
+    context: 'Intelligence report',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'a secret lives exactly as long as two people keep silent but a good cipher holds even when the letter falls into enemy hands so choose your words carefully and keep the key in your head instead of paper',
+    context: 'Folk wisdom',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the reconnaissance team departs tomorrow at ten in the evening the route is marked in chalk on the fence posts each kilometre allows three minutes of rest when meeting a patrol answer quietly and without panic the password is unchanged since saturday',
+    context: 'Military order',
+  },
+  {
+    difficulty: 'EASY',
+    text: 'the first ciphers appeared long before the age of machines emperors and generals used transpositions and shifts while riders carried letters with secret orders in sealed leather bags losing such a letter could cost an entire campaign',
+    context: 'Historical note',
+  },
 ];

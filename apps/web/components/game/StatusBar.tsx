@@ -17,15 +17,15 @@ export function StatusBar() {
   if (!session) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+    <div className="flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-widest text-fade">
       <span>
-        {t('game.attempts')}: <strong>{session.attempts}</strong>
+        {t('game.attempts')}: <strong className="text-ink">{session.attempts}</strong>
       </span>
       <span>
-        {t('game.hints')}: <strong>{session.hintsUsed}</strong>/{session.meta.maxHints}
+        {t('game.hints')}: <strong className="text-ink">{session.hintsUsed}</strong>/{session.meta.maxHints}
       </span>
       <span>
-        {t('game.time')}: <strong>{formatSeconds(elapsedSeconds)}</strong>
+        {t('game.time')}: <strong className="text-ink">{formatSeconds(elapsedSeconds)}</strong>
       </span>
     </div>
   );

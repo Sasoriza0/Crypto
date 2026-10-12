@@ -12,11 +12,11 @@ export function ContextBanner({ contextClue }: { contextClue: string | null }) {
   if (!contextClue) return null;
 
   return (
-    <div className="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950">
-      <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+    <div className="mt-3 border-l-2 border-red-700 bg-card p-3">
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-red-700">
         {t('context.title')}:
       </span>{' '}
-      <span className="text-sm">{contextClue}</span>
+      <span className="font-mono text-sm text-ink">{contextClue}</span>
     </div>
   );
 }

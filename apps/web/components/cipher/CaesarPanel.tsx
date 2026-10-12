@@ -5,6 +5,7 @@ import type { Difficulty, Language } from '@shiftcrack/shared';
 import { getFrequencyTable } from '@shiftcrack/shared';
 import { caesarDecode, getAlphabet, letterFrequencies } from '@/lib/ciphers';
 import { useT } from '@/lib/i18n';
+import { AnswerPanel } from '@/components/game/AnswerPanel';
 import { AlbertiDisks } from './AlbertiDisks';
 import { LetterHistogram } from './LetterHistogram';
 
@@ -12,16 +13,28 @@ interface CaesarPanelProps {
   ciphertext: string;
   language: Language;
   difficulty: Difficulty;
+  answer: string;
+  onAnswerChange: (value: string) => void;
   onUseCandidate: (candidate: string) => void;
 }
 
 /**
- * Caesar panel (Phase 6): the slider is replaced by Alberti disks — the
- * player rotates the inner ring and the decrypted text updates instantly.
- * Above the disks, two frequency histograms (reference language vs.
- * ciphertext) make peak-matching visual; on HARD they are hidden.
+ * Caesar panel (Phase 6): the Alberti disks are the workspace — the player
+ * rotates the inner ring and the decrypted text updates instantly. The
+ * layout is two-column: the disks (with their shift controls) on the left,
+ * the decryption report + answer form + abort control opposite them on the
+ * right, so the whole board fits on one screen. Above the disks, two
+ * frequency histograms (reference language vs. ciphertext) make
+ * peak-matching visual; on HARD they are hidden.
  */
-export function CaesarPanel({ ciphertext, language, difficulty, onUseCandidate }: CaesarPanelProps) {
+export function CaesarPanel({
+  ciphertext,
+  language,
+  difficulty,
+  answer,
+  onAnswerChange,
+  onUseCandidate,
+}: CaesarPanelProps) {
   const t = useT();
   const alphabet = getAlphabet(language);
   const [shift, setShift] = useState(0);
@@ -61,18 +74,18 @@ export function CaesarPanel({ ciphertext, language, difficulty, onUseCandidate }
   }, [referenceValues, cipherStats]);
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-3">
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('game.ciphertext')}
         </h2>
-        <p className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-slate-100 p-4 font-mono text-lg dark:bg-slate-900">
+        <p className="mt-1 whitespace-pre-wrap break-words border border-ink bg-inset p-3 font-mono text-lg">
           {ciphertext}
         </p>
       </div>
 
       {showHistograms && (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <LetterHistogram
             title={t('caesar.referenceHistogram')}
             alphabet={alphabet}
@@ -91,22 +104,30 @@ export function CaesarPanel({ ciphertext, language, difficulty, onUseCandidate }
         </div>
       )}
 
-      <AlbertiDisks alphabet={alphabet} shift={shift} onShiftChange={setShift} />
+      <div className="mt-3 grid items-start gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-2 border border-tan bg-card p-3">
+          <AlbertiDisks alphabet={alphabet} shift={shift} onShiftChange={setShift} />
+        </div>
 
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-          {t('game.candidate')}
-        </h2>
-        <p className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-slate-200 p-4 font-mono text-lg dark:border-slate-800">
-          {candidate}
-        </p>
-        <button
-          type="button"
-          onClick={() => onUseCandidate(candidate)}
-          className="mt-2 rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-        >
-          {t('game.useCandidate')}
-        </button>
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
+              {t('game.candidate')}
+            </h2>
+            <p className="mt-1 min-h-10 whitespace-pre-wrap break-words border border-dashed border-red-700 bg-card p-2 font-mono text-lg">
+              {candidate}
+            </p>
+            <button
+              type="button"
+              onClick={() => onUseCandidate(candidate)}
+              className="mt-1 border border-ink px-3 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset"
+            >
+              {t('game.useCandidate')}
+            </button>
+          </div>
+
+          <AnswerPanel answer={answer} onAnswerChange={onAnswerChange} />
+        </div>
       </div>
     </div>
   );

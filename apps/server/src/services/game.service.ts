@@ -6,6 +6,8 @@ import { getAlphabet, normalizeText, sha256Hex, timingSafeEqualHex } from '../li
 import { prisma } from '../prisma/client.js';
 import { buildContextHint, buildHint, getMaxHints } from './hints.service.js';
 import { decryptCiphertext, generateChallenge } from './phrase.service.js';
+import * as enCorpus from './phrases/en.js';
+import * as ukCorpus from './phrases/uk.js';
 import { computeScore } from './scoring.service.js';
 
 /**
@@ -73,12 +75,12 @@ function textLengthOf(session: GameSession): number {
 }
 
 /** Crypto hint tiers per difficulty plus one context slot on MEDIUM. */
-function totalHintBudget(difficulty: Difficulty): number {
-  return getMaxHints(difficulty) + (difficulty === 'MEDIUM' ? 1 : 0);
+function totalHintBudget(difficulty: Difficulty, module: CipherModule): number {
+  return getMaxHints(difficulty, module) + (difficulty === 'MEDIUM' ? 1 : 0);
 }
 
 function toPublicSession(session: GameSession): PublicGameSession {
-  const maxHints = getMaxHints(session.difficulty);
+  const maxHints = getMaxHints(session.difficulty, session.module);
   return {
     id: session.id,
     module: session.module,
@@ -95,11 +97,12 @@ function toPublicSession(session: GameSession): PublicGameSession {
     expiresAt: session.expiresAt,
     meta: {
       maxHints,
-      hintsRemaining: Math.max(0, totalHintBudget(session.difficulty) - session.hintsUsed),
+      hintsRemaining: Math.max(0, totalHintBudget(session.difficulty, session.module) - session.hintsUsed),
       textLength: textLengthOf(session),
-      // Phase 6: the context clue is free on EASY, hidden everywhere else
-      // (MEDIUM gets it as a hint, HARD never).
-      contextClue: session.difficulty === 'EASY' ? session.contextClue : null,
+      // Phase 6 → missions: the context clue is shown free only in the
+      // FREQUENCY module (the long statistical challenge); CAESAR never
+      // needs it and TRANSPOSITION keeps it as a MEDIUM hint slot.
+      contextClue: session.module === 'FREQUENCY' ? session.contextClue : null,
       contextUsed: session.contextUsed,
     },
   };
@@ -175,6 +178,24 @@ export type AttemptResult =
   | { correct: false; attempts: number; lockedUntil: Date | null }
   | { correct: true; plaintext: string; score: number; attempts: number; hintsUsed: number };
 
+/**
+ * Victory reveal: `decryptCiphertext` returns exactly the PREPARED text,
+ * which for TRANSPOSITION and HARD sessions is a solid letter stream
+ * (spaces stripped by design). For the final screen we recover the ORIGINAL
+ * corpus phrase — with spaces and punctuation — by matching the letters-only
+ * stream against the static corpus. The plaintext itself is still never
+ * stored: the DB holds only the hash + cipher params, and the corpus lives
+ * in source code. Falls back to the prepared text if no corpus match exists
+ * (e.g. legacy dev-DB sessions from older corpora).
+ */
+export function revealPlaintext(language: Language, prepared: string): string {
+  const alphabet = getAlphabet(language);
+  const stream = normalizeText(prepared, alphabet);
+  const corpus = language === 'uk' ? ukCorpus.phrases : enCorpus.phrases;
+  const match = corpus.find((phrase) => normalizeText(phrase.text, alphabet) === stream);
+  return match?.text ?? prepared;
+}
+
 export async function submitAttempt(sessionId: string, userId: string, answer: string): Promise<AttemptResult> {
   const session = await loadOwnedSession(sessionId, userId);
   assertActive(session);
@@ -201,12 +222,13 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
     return { correct: false, attempts, lockedUntil };
   }
 
-  const plaintext = decryptCiphertext(
+  const decrypted = decryptCiphertext(
     session.ciphertext,
     session.module,
     session.cipherParams as unknown as Record<string, unknown>,
     session.language as Language,
   );
+  const plaintext = revealPlaintext(session.language as Language, decrypted);
   const elapsedSeconds = (Date.now() - session.startedAt.getTime()) / 1000;
   const score = computeScore({
     difficulty: session.difficulty,
@@ -240,7 +262,7 @@ export async function requestHint(
   assertActive(session);
   await touchGameSession(session);
 
-  const maxHints = getMaxHints(session.difficulty);
+  const maxHints = getMaxHints(session.difficulty, session.module);
   const isContext = kind === 'context';
 
   if (isContext) {
@@ -255,7 +277,7 @@ export async function requestHint(
   // MEDIUM. The context spend does not advance the crypto tier.
   const cryptoHintsUsed = session.hintsUsed - (session.contextUsed ? 1 : 0);
   const tier = cryptoHintsUsed + 1;
-  const totalBudget = totalHintBudget(session.difficulty);
+  const totalBudget = totalHintBudget(session.difficulty, session.module);
   if (session.hintsUsed >= totalBudget || (!isContext && tier > maxHints)) {
     throw new ApiError(409, 'CONFLICT', 'No more hints available for this session');
   }

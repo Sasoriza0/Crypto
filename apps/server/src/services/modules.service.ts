@@ -14,5 +14,6 @@ export function listModules(): ModuleMetadata[] {
       difficulties: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD],
     },
     { id: CipherModule.FREQUENCY, slug: 'frequency', difficulties: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD] },
+    { id: CipherModule.VIGENERE, slug: 'vigenere', difficulties: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD] },
   ];
 }

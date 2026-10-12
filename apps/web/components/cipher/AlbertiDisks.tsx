@@ -160,7 +160,7 @@ export function AlbertiDisks({ alphabet, shift, onShiftChange }: AlbertiDisksPro
             cx={CENTER}
             cy={CENTER}
             r={OUTER_DISK_R}
-            className="fill-slate-200 dark:fill-slate-800"
+            className="fill-inset"
           />
           <circle
             cx={CENTER}
@@ -168,9 +168,9 @@ export function AlbertiDisks({ alphabet, shift, onShiftChange }: AlbertiDisksPro
             r={OUTER_DISK_R}
             fill="none"
             strokeWidth={2}
-            className="stroke-slate-400 dark:stroke-slate-600"
+            className="stroke-ink"
           />
-          <g className="fill-slate-700 font-mono dark:fill-slate-200" fontSize={13}>
+          <g className="fill-ink font-mono" fontSize={13}>
             {outerPoints.map((p) => (
               <text key={p.ch} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central">
                 {p.ch}
@@ -191,9 +191,9 @@ export function AlbertiDisks({ alphabet, shift, onShiftChange }: AlbertiDisksPro
               cy={CENTER}
               r={INNER_DISK_R}
               strokeWidth={2}
-              className="fill-white stroke-sky-400 dark:fill-slate-900 dark:stroke-sky-600"
+              className="fill-paper stroke-red-700"
             />
-            <g className="fill-sky-700 font-mono dark:fill-sky-300" fontSize={12}>
+            <g className="fill-ink font-mono" fontSize={12}>
               {innerPoints.map((p) => (
                 <text
                   key={p.ch}
@@ -201,7 +201,7 @@ export function AlbertiDisks({ alphabet, shift, onShiftChange }: AlbertiDisksPro
                   y={p.y}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  className={p.ch === alphabet[0] ? 'fill-rose-600 dark:fill-rose-400' : undefined}
+                  className={p.ch === alphabet[0] ? 'fill-red-700' : undefined}
                 >
                   {p.ch}
                 </text>
@@ -216,31 +216,30 @@ export function AlbertiDisks({ alphabet, shift, onShiftChange }: AlbertiDisksPro
               x2={CENTER}
               y2={CENTER - 129}
               strokeWidth={2.5}
-              className="stroke-rose-500 dark:stroke-rose-400"
+              className="stroke-red-700"
             />
           </g>
 
           {/* Hub */}
-          <circle cx={CENTER} cy={CENTER} r={9} className="fill-slate-400 dark:fill-slate-600" />
+          <circle cx={CENTER} cy={CENTER} r={9} className="fill-red-700" />
         </svg>
       </div>
 
-      <p className="font-mono text-sm text-slate-600 dark:text-slate-400">
-        {alphabet[0]} → {alignedCipher}
+      <p className="font-mono text-sm text-fade">
+        {alphabet[0]} → <strong className="text-red-700">{alignedCipher}</strong>
       </p>
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-slate-600 dark:text-slate-400">
-          {t('caesar.shift')}: <strong className="text-slate-900 dark:text-white">{shift}</strong>
+      <div className="flex items-center gap-3 font-mono text-sm">
+        <span className="text-fade">
+          {t('caesar.shift')}: <strong className="text-ink">{shift}</strong>
         </span>
         <button
           type="button"
           onClick={() => onShiftChange(0)}
-          className="rounded-md border border-slate-300 px-2 py-0.5 text-xs hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          className="border border-ink px-2 py-0.5 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset"
         >
           {t('caesar.reset')}
         </button>
       </div>
-      <p className="text-sm text-slate-500 dark:text-slate-400">{t('caesar.help')}</p>
     </div>
   );
 }

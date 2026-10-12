@@ -214,7 +214,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
     <>
       <div
         ref={containerRef}
-        className="flex flex-wrap select-none gap-x-8 gap-y-4 font-mono outline-none"
+        className="flex flex-wrap select-none gap-x-8 gap-y-1 font-mono outline-none"
         tabIndex={0}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
@@ -225,7 +225,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
         style={{ touchAction: 'none' }}
       >
         {words.map(({ start, end }) => (
-          <div key={start} className="flex flex-wrap gap-1">
+          <div key={start} className="flex flex-wrap gap-0">
             {letters.slice(start, end + 1).map((ch, offset) => {
               const idx = start + offset;
               const isLetter = alphabet.includes(ch);
@@ -234,7 +234,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                   <span
                     key={idx}
                     data-idx={idx}
-                    className="flex h-14 w-6 shrink-0 items-center justify-center text-lg text-slate-400 dark:text-slate-500"
+                    className="flex h-14 w-6 shrink-0 items-center justify-center text-lg text-fade"
                   >
                     {ch}
                   </span>
@@ -262,8 +262,8 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                 <span
                   key={idx}
                   data-idx={idx}
-                  className={`flex h-14 w-10 shrink-0 cursor-pointer flex-col items-center justify-center rounded leading-none ${cellClass} ${
-                    selected === idx ? 'ring-2 ring-sky-500' : ''
+                  className={`flex h-14 w-8 shrink-0 cursor-pointer flex-col items-center justify-center leading-none ${cellClass} ${
+                    selected === idx ? 'ring-2 ring-red-700' : ''
                   }`}
                 >
                   <span
@@ -273,7 +273,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                   >
                     {entry ? entry.plain : '\u00A0'}
                   </span>
-                  <span className="text-base text-slate-400 dark:text-slate-500">{ch}</span>
+                  <span className="text-base text-fade">{ch}</span>
                 </span>
               );
             })}
@@ -282,7 +282,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
       </div>
 
       {pattern && (
-        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">
+        <p className="mt-1 font-mono text-xs text-red-700">
           {t('frequency.ngramCount', { count: occurrences.length })}
         </p>
       )}
@@ -291,13 +291,13 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setPalette(null)} />
           <div
-            className="fixed z-50 w-60 rounded-lg border border-slate-300 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+            className="fixed z-50 w-60 border border-tan bg-paper p-2 shadow-[4px_4px_0_rgba(66,54,36,0.16)]"
             style={{
               left: Math.min(palette.x, window.innerWidth - 250),
               top: Math.min(palette.y, window.innerHeight - 380),
             }}
           >
-            <div className="mb-1 text-xs text-slate-500 dark:text-slate-400">
+            <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-fade">
               «{paletteLetter}» → {t('frequency.palette.title')}
             </div>
             <div className="flex flex-wrap gap-1">
@@ -309,7 +309,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                     setDraft(paletteLetter, plain);
                     setPalette(null);
                   }}
-                  className="h-8 w-8 rounded border border-slate-200 font-mono text-base hover:border-amber-400 hover:bg-amber-100 dark:border-slate-700 dark:hover:bg-amber-900"
+                  className="h-8 w-8 border border-tan bg-transparent font-mono text-base text-ink transition hover:border-red-700 hover:text-red-700"
                 >
                   {plain}
                 </button>
@@ -322,7 +322,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                   lockLetter(paletteLetter);
                   setPalette(null);
                 }}
-                className="flex-1 rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                className="flex-1 border border-ink px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset"
               >
                 {t('frequency.mapping.lock')}
               </button>
@@ -332,7 +332,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                   clearLetter(paletteLetter);
                   setPalette(null);
                 }}
-                className="flex-1 rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                className="flex-1 border border-ink px-2 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset"
               >
                 {t('frequency.mapping.clear')}
               </button>

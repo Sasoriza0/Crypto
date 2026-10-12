@@ -145,7 +145,7 @@ async function main() {
   const modulesRes = await request(`${GAME_BASE}/modules`, { headers });
   assert(modulesRes.status === 200, `expected 200 on /game/modules, got ${modulesRes.status}`);
   const modules = (modulesRes.body.modules ?? []) as Record<string, unknown>[];
-  assert(modules.length === 3, `expected 3 modules, got ${modules.length}`);
+  assert(modules.length === 4, `expected 4 modules, got ${modules.length}`);
   assert(
     modules.every((m) => typeof m.id === 'string' && typeof m.slug === 'string' && Array.isArray(m.difficulties)),
     'module metadata shape wrong',
@@ -309,13 +309,68 @@ async function main() {
   const freqAbandon = await request(`${GAME_BASE}/sessions/${freqSession.id}/abandon`, { method: 'POST', headers });
   assert(freqAbandon.status === 200, 'FREQUENCY abandon failed');
 
+  // ---------------------------------------------------------------------
+  // VIGENERE: word structure kept + Kasiski-style key-length hint
+  // ---------------------------------------------------------------------
+
+  const vigRes = await request(`${GAME_BASE}/sessions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ module: 'VIGENERE', difficulty: 'HARD', language: 'uk' }),
+  });
+  assert(vigRes.status === 201, `expected 201 on VIGENERE session, got ${vigRes.status}`);
+  const vigSession = vigRes.body;
+  const vigText = vigSession.ciphertext as string;
+  assert(vigText.includes(' '), 'VIGENERE ciphertext must keep spaces between words');
+  for (const ch of vigText) {
+    assert(ukAlphabet.includes(ch) || ch === ' ', `VIGENERE ciphertext contains an unexpected char: ${ch}`);
+  }
+  assert(!('cipherParams' in vigSession), 'VIGENERE session leaked cipherParams');
+
+  // HARD gives two hints for VIGENERE (the hardest mission): the key length
+  // (the Kasiski goal) and the first key letter (the first key-fitting slider).
+  const vigHint = await request(`${GAME_BASE}/sessions/${vigSession.id}/hints`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  assert(
+    vigHint.status === 200 && vigHint.body.hint.includes('Довжина ключа Віженера'),
+    `VIGENERE hint 1 failed: ${vigHint.status} ${JSON.stringify(vigHint.body)}`,
+  );
+  assert(
+    vigHint.body.maxHints === 2 || vigHint.body.hintsRemaining === 1,
+    `VIGENERE hint budget should be 2, got: ${JSON.stringify(vigHint.body)}`,
+  );
+
+  const vigHint2 = await request(`${GAME_BASE}/sessions/${vigSession.id}/hints`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  assert(
+    vigHint2.status === 200 && vigHint2.body.hint.includes('Перша літера ключа'),
+    `VIGENERE hint 2 failed: ${vigHint2.status} ${JSON.stringify(vigHint2.body)}`,
+  );
+
+  // The budget is spent: a third hint is rejected.
+  const vigHint3 = await request(`${GAME_BASE}/sessions/${vigSession.id}/hints`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  assert(vigHint3.status === 409, `expected 409 on exhausted VIGENERE hints, got ${vigHint3.status}`);
+
+  const vigAbandon = await request(`${GAME_BASE}/sessions/${vigSession.id}/abandon`, { method: 'POST', headers });
+  assert(vigAbandon.status === 200, 'VIGENERE abandon failed');
+
   // Cleanup: GameSession FK is ON DELETE RESTRICT, so remove game rows
   // first; the Session rows cascade with their users.
   await prisma.gameSession.deleteMany({ where: { userId: cleanupUserId } });
   await prisma.user.delete({ where: { id: cleanupUserId } });
   await prisma.user.delete({ where: { email: 'smoke@example.com' } });
 
-  console.log('SMOKE OK: auth (anonymous/register/login/me/logout) + session ping + game (modules -> create -> hints -> solve -> guards -> EASY no-lockout -> MEDIUM lockout -> abandon -> frequency hints)');
+  console.log('SMOKE OK: auth (anonymous/register/login/me/logout) + session ping + game (modules -> create -> hints -> solve -> guards -> EASY no-lockout -> MEDIUM lockout -> abandon -> frequency hints -> vigenere spaces + 2-tier hints)');
 }
 
 main().catch((err) => {

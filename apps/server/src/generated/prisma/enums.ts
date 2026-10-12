@@ -21,7 +21,8 @@ export type Difficulty = (typeof Difficulty)[keyof typeof Difficulty]
 export const CipherModule = {
   CAESAR: 'CAESAR',
   TRANSPOSITION: 'TRANSPOSITION',
-  FREQUENCY: 'FREQUENCY'
+  FREQUENCY: 'FREQUENCY',
+  VIGENERE: 'VIGENERE'
 } as const
 
 export type CipherModule = (typeof CipherModule)[keyof typeof CipherModule]

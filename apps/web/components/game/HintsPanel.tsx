@@ -38,13 +38,13 @@ export function HintsPanel() {
   };
 
   return (
-    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+    <div className="mt-4 border border-tan bg-inset p-4">
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => void onRequest()}
           disabled={cryptoExhausted || busy}
-          className="rounded-md border border-amber-400 px-3 py-1 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-700 dark:text-amber-300 dark:hover:bg-amber-900"
+          className="border border-ink px-3 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
         >
           {t('game.hint.request')}
         </button>
@@ -53,15 +53,15 @@ export function HintsPanel() {
             type="button"
             onClick={() => void onRequest('context')}
             disabled={busy}
-            className="rounded-md border border-indigo-400 px-3 py-1 text-sm font-medium text-indigo-700 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900"
+            className="border border-red-700 px-3 py-1 font-mono text-xs uppercase tracking-widest text-red-700 transition hover:bg-red-700 hover:text-paper disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('game.hint.context')}
           </button>
         )}
       </div>
-      {lastHint && <p className="mt-2 text-sm">{lastHint}</p>}
+      {lastHint && <p className="mt-3 font-serif text-sm">{lastHint}</p>}
       {cryptoExhausted && !contextAvailable && (
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">{t('game.hint.noneLeft')}</p>
+        <p className="mt-2 font-mono text-xs text-fade">{t('game.hint.noneLeft')}</p>
       )}
     </div>
   );

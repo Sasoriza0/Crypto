@@ -25,8 +25,8 @@ export interface LetterHistogramProps {
 const COL_WIDTH = 20;
 
 const ACCENTS = {
-  emerald: 'bg-emerald-500 dark:bg-emerald-400',
-  sky: 'bg-sky-500 dark:bg-sky-400',
+  emerald: 'bg-tan',
+  sky: 'bg-red-700',
 } as const;
 
 export function LetterHistogram({ title, alphabet, values, counts, scaleMax, accent }: LetterHistogramProps) {
@@ -49,8 +49,8 @@ export function LetterHistogram({ title, alphabet, values, counts, scaleMax, acc
   const barClass = ACCENTS[accent];
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800">
-      <h3 className="border-b border-slate-200 px-4 py-2 text-sm font-semibold dark:border-slate-800">
+    <div className="border border-tan bg-card">
+      <h3 className="border-b border-tan px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
         {title}
       </h3>
       <div className="overflow-x-auto p-3">
@@ -70,9 +70,9 @@ export function LetterHistogram({ title, alphabet, values, counts, scaleMax, acc
                   style={{ minWidth: COL_WIDTH }}
                 >
                   <div
-                    className={`w-3/5 rounded-t-sm transition-opacity ${barClass} ${
+                    className={`w-3/5 transition-opacity ${barClass} ${
                       hovered === letter ? 'opacity-100' : 'opacity-80'
-                    } ${maxLetter === letter ? 'ring-2 ring-rose-500 dark:ring-rose-400' : ''}`}
+                    } ${maxLetter === letter ? 'ring-2 ring-red-700' : ''}`}
                     style={{ height: `${Math.max(0, (percent / scaleMax) * 100)}%` }}
                   />
                 </div>
@@ -83,7 +83,7 @@ export function LetterHistogram({ title, alphabet, values, counts, scaleMax, acc
             {letters.map((letter) => (
               <div
                 key={letter}
-                className="flex-1 text-center font-mono text-[10px] text-slate-500 dark:text-slate-400"
+                className="flex-1 text-center font-mono text-[10px] text-fade"
                 style={{ minWidth: COL_WIDTH }}
               >
                 {letter}

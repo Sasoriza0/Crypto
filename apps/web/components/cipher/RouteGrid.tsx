@@ -201,18 +201,18 @@ export function RouteGrid({ ciphertext, textLength, onCandidateChange }: RouteGr
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 dark:text-slate-400">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-widest text-fade">
         <span>
-          {t('transposition.columns')}: <strong className="text-slate-900 dark:text-white">{cols}</strong>
+          {t('transposition.columns')}: <strong className="text-ink">{cols}</strong>
         </span>
         <span>
-          {t('transposition.rows')}: <strong className="text-slate-900 dark:text-white">{rows}</strong>
+          {t('transposition.rows')}: <strong className="text-ink">{rows}</strong>
         </span>
         <span>
           {t('transposition.letters')}: {cells.length}
         </span>
         {perfectRectangle && (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+          <span className="rotate-[-2deg] border border-red-700 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-red-700">
             {t('transposition.perfect')}
           </span>
         )}
@@ -223,7 +223,7 @@ export function RouteGrid({ ciphertext, textLength, onCandidateChange }: RouteGr
           <button
             type="button"
             onClick={() => setTrace([])}
-            className="rounded-md border border-slate-300 px-2 py-0.5 text-xs hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="border border-ink px-2 py-0.5 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-inset"
           >
             {t('transposition.traceClear')}
           </button>
@@ -246,9 +246,9 @@ export function RouteGrid({ ciphertext, textLength, onCandidateChange }: RouteGr
         onPointerUp={onGridPointerUp}
         onPointerCancel={onGridPointerUp}
       >
-        <div className="max-h-[65vh] overflow-hidden rounded-lg">
+        <div className="max-h-[65vh] overflow-hidden">
           <div
-            className="grid gap-px border border-slate-300 bg-slate-300 p-px dark:border-slate-700 dark:bg-slate-700"
+            className="grid gap-px border border-ink bg-ink p-px"
             style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
           >
             {cells.map((ch, idx) => {
@@ -266,18 +266,18 @@ export function RouteGrid({ ciphertext, textLength, onCandidateChange }: RouteGr
                     denseCells ? 'text-[10px]' : 'text-sm sm:text-base'
                   } ${
                     traced
-                      ? 'bg-sky-300 text-sky-950 dark:bg-sky-800 dark:text-sky-100'
+                      ? 'bg-red-700 text-white'
                       : highlighted
-                        ? 'bg-amber-300 text-amber-950 dark:bg-amber-700 dark:text-amber-100'
+                        ? 'bg-tan text-ink'
                         : isSpace
-                          ? 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
-                          : 'bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100'
+                          ? 'bg-card text-fade'
+                          : 'bg-inset text-ink'
                   }`}
                 >
                   <span>{isSpace ? '·' : ch}</span>
                   {traced && (
                     <span
-                      className={`absolute right-0.5 top-0 font-semibold leading-none ${
+                      className={`absolute right-0.5 top-0 font-semibold leading-none text-white ${
                         denseCells ? 'text-[6px]' : 'text-[9px]'
                       }`}
                     >
@@ -292,18 +292,15 @@ export function RouteGrid({ ciphertext, textLength, onCandidateChange }: RouteGr
 
         {/* Corner grip — drag to resize the column count */}
         <div
-          className="absolute -bottom-2 -right-2 flex h-6 w-6 cursor-nwse-resize items-end justify-end rounded-br-md bg-slate-400 p-0.5 dark:bg-slate-600"
+          className="absolute -bottom-2 -right-2 flex h-6 w-6 cursor-nwse-resize items-end justify-end border border-tan bg-ink p-0.5"
           onPointerDown={onCornerPointerDown}
           onPointerMove={onCornerPointerMove}
           onPointerUp={onCornerPointerEnd}
           onPointerCancel={onCornerPointerEnd}
         >
-          <span className="text-[10px] leading-none text-white">▘</span>
+          <span className="text-[10px] leading-none text-paper">▘</span>
         </div>
       </div>
-
-      <p className="text-sm text-slate-500 dark:text-slate-400">{t('transposition.help')}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400">{t('transposition.highlightHint')}</p>
     </div>
   );
 }

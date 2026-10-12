@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Обов'язковий крок перед викликом локальних файлів
+        uses: actions/checkout@v4 
 
       - name: Setup (Node.js, npm ci)
         uses: ./.github/actions/setup # Тепер GitHub бачить цей файл
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # <-- Додай цей крок сюди
+        uses: actions/checkout@v4 
 
       - name: Setup (Node.js, npm ci)
         uses: ./.github/actions/setup
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # <-- І обов'язково сюди
+        uses: actions/checkout@v4 
 
       - name: Setup (Node.js, npm ci)
         uses: ./.github/actions/setup

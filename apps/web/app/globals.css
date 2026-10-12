@@ -2,3 +2,69 @@
 
 /* Class-based dark mode: the persisted theme toggles `.dark` on <html>. */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Retro Spy Dossier palette (from _v0_design_reference): vintage paper,
+ * dark ink, tan borders and red stamps. The tokens resolve through CSS
+ * variables so the dark theme swaps the papers for dark-brown "night
+ * archive" surfaces while the red ink stays put.
+ */
+:root {
+  --sc-page: #e9dfc9;
+  --sc-panel: #f4ebd8;
+  --sc-card: #f7f0e2;
+  --sc-inset: #ede1cc;
+  --sc-ink: #29251f;
+  --sc-tan: #b8aa8d;
+  --sc-fade: #776b57;
+  --sc-fade-dark: #665b49;
+}
+
+.dark {
+  --sc-page: #16130e;
+  --sc-panel: #221e17;
+  --sc-card: #2a251c;
+  --sc-inset: #1c1812;
+  --sc-ink: #e9e0cd;
+  --sc-tan: #6e6248;
+  --sc-fade: #a3967c;
+  --sc-fade-dark: #8d8066;
+}
+
+@theme inline {
+  --color-page: var(--sc-page);
+  --color-paper: var(--sc-panel);
+  --color-card: var(--sc-card);
+  --color-inset: var(--sc-inset);
+  --color-ink: var(--sc-ink);
+  --color-tan: var(--sc-tan);
+  --color-fade: var(--sc-fade);
+  --color-fade-dark: var(--sc-fade-dark);
+
+  /* next/font Lora replaces the default Times stack for font-serif. */
+  --font-serif: var(--font-lora), ui-serif, Georgia, serif;
+}
+
+/*
+ * Retro scrollbars: thin, strictly square (no rounding), dark-grey
+ * stone-600 thumb on a transparent/paper track — matches the dossier
+ * tables and histogram strips.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #57534e transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #57534e;
+  border-radius: 0;
+}
