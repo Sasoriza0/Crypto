@@ -15,5 +15,7 @@ export function listModules(): ModuleMetadata[] {
     },
     { id: CipherModule.FREQUENCY, slug: 'frequency', difficulties: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD] },
     { id: CipherModule.VIGENERE, slug: 'vigenere', difficulties: [Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD] },
+    // Mission 05: the three-phase composite challenge is HARD-only.
+    { id: CipherModule.CHIMERA, slug: 'chimera', difficulties: [Difficulty.HARD] },
   ];
 }

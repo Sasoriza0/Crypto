@@ -22,6 +22,7 @@ enum CipherModule {
   TRANSPOSITION
   FREQUENCY
   VIGENERE
+  CHIMERA
 }
 
 enum SessionStatus {

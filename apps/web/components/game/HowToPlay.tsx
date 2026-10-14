@@ -16,6 +16,7 @@ const INSTRUCTION_KEYS: Record<CipherModule, string[]> = {
   TRANSPOSITION: ['transposition.help', 'transposition.highlightHint'],
   FREQUENCY: ['frequency.help', 'frequency.ngramHelp'],
   VIGENERE: ['vigenere.help'],
+  CHIMERA: ['chimera.help'],
 };
 
 export function HowToPlay({ module }: { module: CipherModule }) {

@@ -14,6 +14,19 @@ export const attemptsLimiter = rateLimit({
 });
 
 /**
+ * CHIMERA structured actions (Mission 05). Looser than the attempts
+ * limiter on purpose: the phase-3 JWT timing oracle is solved by sending
+ * hundreds of measurement probes, which is the mechanic itself, not abuse.
+ */
+export const chimeraLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: Number(process.env.RATE_LIMIT_CHIMERA_MAX ?? 120),
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: { code: 'TOO_MANY_REQUESTS', message: 'Too many probes, try again later' } },
+});
+
+/**
  * Credential endpoints (SDD §8.3 step 4.2): anonymous/register/login are the
  * brute-force surface for account enumeration and password guessing, so they
  * get a window 6x stricter than the global limiter (10/min/IP).

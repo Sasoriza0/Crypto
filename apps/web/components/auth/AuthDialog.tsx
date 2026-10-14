@@ -14,6 +14,10 @@ interface AuthDialogProps {
  * Login / register dialog (SDD §4.2): both forms share one modal and feed
  * the existing useAuthStore actions; the server answers with a fresh
  * httpOnly session cookie and the header switches to the account view.
+ *
+ * Styled as a retro field-dossier: sharp-cornered paper card, thick ink
+ * border, hard offset shadow, red CLASSIFIED stamp, mono inputs and a
+ * dark stone submit button — matching the ExitWarning / HowToPlay chrome.
  */
 export function AuthDialog({ open, onClose }: AuthDialogProps) {
   const t = useT();
@@ -62,26 +66,40 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+        className="relative w-full max-w-sm rounded-none border-2 border-stone-800 bg-paper p-6 shadow-[4px_4px_0px_0px_rgba(41,37,36,1)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between">
-          <h2 className="text-xl font-bold">
+        <span
+          aria-hidden
+          className="absolute -top-3 right-4 rotate-[2deg] border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700"
+        >
+          {t('auth.dialog.stamp')}
+        </span>
+
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
+          {t('auth.dialog.brief')}
+        </p>
+
+        <div className="mb-4 mt-1 flex items-start justify-between border-b border-stone-400 pb-2">
+          <h2 className="font-serif text-xl font-bold uppercase tracking-wider text-stone-900">
             {mode === 'login' ? t('auth.dialog.login.title') : t('auth.dialog.register.title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            className="cursor-pointer rounded-sm px-1 font-mono text-lg leading-none text-stone-700 transition-colors hover:bg-stone-300/60 hover:text-red-800"
             title={t('auth.close')}
           >
-            ✕
+            [✕]
           </button>
         </div>
 
-        <form onSubmit={(e) => void onSubmit(e)} className="mt-4 space-y-3">
+        <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
           <div>
-            <label htmlFor="auth-email" className="text-sm font-medium">
+            <label
+              htmlFor="auth-email"
+              className="font-mono text-xs uppercase tracking-wide text-stone-700"
+            >
               {t('auth.email')}
             </label>
             <input
@@ -91,12 +109,15 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-2 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0"
             />
           </div>
 
           <div>
-            <label htmlFor="auth-password" className="text-sm font-medium">
+            <label
+              htmlFor="auth-password"
+              className="font-mono text-xs uppercase tracking-wide text-stone-700"
+            >
               {t('auth.password')}
             </label>
             <input
@@ -107,25 +128,25 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               required
               minLength={mode === 'register' ? 8 : 1}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
+              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-2 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && <p className="font-mono text-sm text-red-700">{error}</p>}
 
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-md bg-sky-600 px-4 py-2 font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+            className="w-full cursor-pointer rounded-none border border-stone-900 bg-stone-800 px-4 py-2 font-mono text-sm uppercase tracking-wider text-stone-100 transition-colors hover:border-red-700 hover:bg-red-700 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {mode === 'login' ? t('auth.submit.login') : t('auth.submit.register')}
+            {busy ? '…' : mode === 'login' ? t('auth.submit.login') : t('auth.submit.register')}
           </button>
         </form>
 
         <button
           type="button"
           onClick={switchMode}
-          className="mt-3 w-full text-center text-sm text-sky-600 hover:underline dark:text-sky-400"
+          className="mt-3 w-full cursor-pointer text-center font-mono text-xs text-stone-700 underline transition-colors hover:text-stone-900"
         >
           {mode === 'login' ? t('auth.switchToRegister') : t('auth.switchToLogin')}
         </button>

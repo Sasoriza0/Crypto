@@ -1,9 +1,10 @@
-import type { CipherModule, Difficulty, HintKind, Language } from '@shiftcrack/shared';
+import type { ChimeraAttemptInput, ChimeraAttemptResponse, ChimeraPacket, CipherModule, Difficulty, HintKind, Language } from '@shiftcrack/shared';
 import type { GameSession } from '../generated/prisma/client.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { ApiError, notFound } from '../lib/errors.js';
 import { getAlphabet, normalizeText, sha256Hex, timingSafeEqualHex } from '../lib/text.js';
 import { prisma } from '../prisma/client.js';
+import { chimeraFullyDone, chimeraPhase1Done, chimeraPhaseOf, parseChimeraParams, processChimeraAttempt } from './ciphers/chimera.js';
 import { buildContextHint, buildHint, getMaxHints } from './hints.service.js';
 import { decryptCiphertext, generateChallenge } from './phrase.service.js';
 import * as enCorpus from './phrases/en.js';
@@ -62,6 +63,17 @@ export interface PublicGameSession {
     textLength?: number;
     contextClue: string | null;
     contextUsed: boolean;
+    chimera?: {
+      phase: 1 | 2 | 3;
+      mitmDone: boolean;
+      hqPacket: ChimeraPacket;
+      agentPacket: ChimeraPacket;
+      proxyKey: string;
+      aesBlocks: string[];
+      originalJson: string;
+      /** Phase 1 reward: the JWT signing secret (null until the injection). */
+      jwtSecret: string | null;
+    };
   };
 }
 
@@ -81,6 +93,24 @@ function totalHintBudget(difficulty: Difficulty, module: CipherModule): number {
 
 function toPublicSession(session: GameSession): PublicGameSession {
   const maxHints = getMaxHints(session.difficulty, session.module);
+  const chimera =
+    session.module === 'CHIMERA'
+      ? (() => {
+          const params = parseChimeraParams(session.cipherParams);
+          return {
+            phase: chimeraPhaseOf(params),
+            mitmDone: params.mitmDone,
+            hqPacket: params.hqPacket,
+            agentPacket: params.agentPacket,
+            proxyKey: params.proxyKey,
+            aesBlocks: params.aesBlocks,
+            originalJson: params.originalJson,
+            // The signing secret is the phase-1 reward: projected only
+            // once the injection seizes the channel, never before.
+            jwtSecret: chimeraPhase1Done(params) ? params.jwtSecret : null,
+          };
+        })()
+      : undefined;
   return {
     id: session.id,
     module: session.module,
@@ -104,6 +134,7 @@ function toPublicSession(session: GameSession): PublicGameSession {
       // needs it and TRANSPOSITION keeps it as a MEDIUM hint slot.
       contextClue: session.module === 'FREQUENCY' ? session.contextClue : null,
       contextUsed: session.contextUsed,
+      chimera,
     },
   };
 }
@@ -201,8 +232,18 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
   assertActive(session);
   await touchGameSession(session);
 
-  const normalized = normalizeText(answer, getAlphabet(session.language as Language));
-  const answerHash = sha256Hex(normalized);
+  // CHIMERA: the final report is only gradeable once all three phases are
+  // complete — its hash covers the target JSON assembled from the phases.
+  const chimera = session.module === 'CHIMERA' ? parseChimeraParams(session.cipherParams) : null;
+  if (chimera && !chimeraFullyDone(chimera)) {
+    throw new ApiError(409, 'CHIMERA_PHASE', 'Complete all three phases before submitting the final report');
+  }
+
+  // CHIMERA's answer is the exact target JSON (whitespace-trimmed only);
+  // classic modules normalize letters via the language alphabet.
+  const answerHash = chimera
+    ? sha256Hex(answer.trim())
+    : sha256Hex(normalizeText(answer, getAlphabet(session.language as Language)));
   const correct = timingSafeEqualHex(answerHash, session.plaintextHash);
   const attempts = session.attempts + 1;
 
@@ -222,13 +263,17 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
     return { correct: false, attempts, lockedUntil };
   }
 
-  const decrypted = decryptCiphertext(
-    session.ciphertext,
-    session.module,
-    session.cipherParams as unknown as Record<string, unknown>,
-    session.language as Language,
-  );
-  const plaintext = revealPlaintext(session.language as Language, decrypted);
+  const decrypted = chimera
+    ? chimera.targetJson
+    : decryptCiphertext(
+        session.ciphertext,
+        session.module,
+        session.cipherParams as unknown as Record<string, unknown>,
+        session.language as Language,
+      );
+  const plaintext = chimera
+    ? chimera.targetJson
+    : revealPlaintext(session.language as Language, decrypted);
   const elapsedSeconds = (Date.now() - session.startedAt.getTime()) / 1000;
   const score = computeScore({
     difficulty: session.difficulty,
@@ -243,6 +288,67 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
   });
 
   return { correct: true, plaintext, score, attempts, hintsUsed: session.hintsUsed };
+}
+
+/**
+ * Structured CHIMERA attempts (Mission 05): inject_packets / swap_blocks /
+ * test_jwt. Delegates the verification to the pure chimera service and
+ * persists the phase progress back into `cipherParams`.
+ *
+ * - `test_jwt` submissions never increment the attempt counter and never
+ *   trigger the bruteforce lockout — the player may iterate on the locally
+ *   generated token until the payload and signature are right.
+ * - inject_packets / swap_blocks failures count as regular attempts.
+ */
+export async function submitChimeraAttempt(
+  sessionId: string,
+  userId: string,
+  input: ChimeraAttemptInput,
+): Promise<ChimeraAttemptResponse> {
+  const session = await loadOwnedSession(sessionId, userId);
+  assertActive(session);
+  if (session.module !== 'CHIMERA') {
+    throw new ApiError(409, 'CONFLICT', 'Structured attempts are only available for the CHIMERA mission');
+  }
+  await touchGameSession(session);
+
+  const params = parseChimeraParams(session.cipherParams);
+
+  // Phase gates: each action unlocks only after the previous phase.
+  if (input.action === 'swap_blocks' && !chimeraPhase1Done(params)) {
+    throw new ApiError(409, 'CHIMERA_PHASE', 'Complete phase 1 (packet injection) first');
+  }
+  if (input.action === 'test_jwt' && !params.phase2Done) {
+    throw new ApiError(409, 'CHIMERA_PHASE', 'Complete phase 2 (block substitution) first');
+  }
+
+  const result = processChimeraAttempt(params, input);
+  const attempts = input.action === 'test_jwt' ? session.attempts : session.attempts + 1;
+
+  await prisma.gameSession.update({
+    where: { id: session.id },
+    data: {
+      attempts,
+      cipherParams: result.updatedParams as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  if (!result.correct) {
+    return {
+      correct: false,
+      attempts,
+      lockedUntil: null,
+    };
+  }
+
+  return {
+    correct: true,
+    action: input.action,
+    attempts,
+    phase: chimeraPhaseOf(result.updatedParams),
+    ...(result.payload.forgedJson !== undefined ? { forgedJson: result.payload.forgedJson } : {}),
+    ...(result.payload.secret !== undefined ? { secret: result.payload.secret } : {}),
+  };
 }
 
 export interface HintResult {

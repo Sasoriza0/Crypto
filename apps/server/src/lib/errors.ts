@@ -12,6 +12,7 @@ export type ApiErrorCode =
   | 'SESSION_EXPIRED'
   | 'SESSION_NOT_ACTIVE'
   | 'CONTEXT_UNAVAILABLE'
+  | 'CHIMERA_PHASE'
   | 'INTERNAL';
 
 /**

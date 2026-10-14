@@ -28,6 +28,7 @@ export const CipherModule = {
   TRANSPOSITION: 'TRANSPOSITION',
   FREQUENCY: 'FREQUENCY',
   VIGENERE: 'VIGENERE',
+  CHIMERA: 'CHIMERA',
 } as const;
 export type CipherModule = (typeof CipherModule)[keyof typeof CipherModule];
 
@@ -130,6 +131,81 @@ export const sessionPingResponseSchema = z.object({
 export type SessionPingResponse = z.infer<typeof sessionPingResponseSchema>;
 
 // ---------------------------------------------------------------------------
+// CHIMERA mission contracts (Mission 05, SDD Phase 7)
+//
+// Unlike the classic ciphers, a CHIMERA session progresses through three
+// interactive phases; each player action is a structured attempt validated
+// at the API edge and processed by the chimera service. The final victory
+// submission is still the plain answer report (submitAttemptSchema) whose
+// hash must equal the target JSON assembled from all three phases.
+// ---------------------------------------------------------------------------
+
+/**
+ * Phase 1: one intercepted wire packet of the MitM channel. The player
+ * forges `pub_key` (their proxy key) while keeping `src` and `dst` intact —
+ * the route is what makes the injection believable to both parties.
+ */
+export const chimeraPacketSchema = z.object({
+  src: z.string().min(1).max(64),
+  dst: z.string().min(1).max(64),
+  pub_key: z.string().min(1).max(128),
+});
+export type ChimeraPacket = z.infer<typeof chimeraPacketSchema>;
+
+export const chimeraPhaseSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+export type ChimeraPhase = z.infer<typeof chimeraPhaseSchema>;
+
+/**
+ * POST /game/sessions/:id/chimera — structured mission actions:
+ * - `inject_packets` (phase 1): the two forged wire packets (HQ → AGENT,
+ *   AGENT → HQ) with the player's proxy key swapped in;
+ * - `swap_blocks` (phase 2): replace AES-ECB block `from` with block `to`;
+ * - `test_jwt` (phase 3): submit the locally generated JWT for
+ *   verification (signature + payload).
+ */
+export const chimeraAttemptSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('inject_packets'),
+    hqPacket: chimeraPacketSchema,
+    agentPacket: chimeraPacketSchema,
+  }),
+  z.object({
+    action: z.literal('swap_blocks'),
+    from: z.number().int().min(0).max(31),
+    to: z.number().int().min(0).max(31),
+  }),
+  z.object({
+    action: z.literal('test_jwt'),
+    token: z.string().min(1).max(1000),
+  }),
+]);
+export type ChimeraAttemptInput = z.infer<typeof chimeraAttemptSchema>;
+
+/**
+ * POST /game/sessions/:id/chimera response. `phase` is the mission phase
+ * the session is in AFTER the successful action; per-action payloads
+ * (forgedJson, secret) exist only on their own arm. `secret` is the
+ * phase-1 reward: the JWT signing key carried by the decrypted packet
+ * once the proxy injection seizes the channel.
+ */
+export const chimeraAttemptResponseSchema = z.discriminatedUnion('correct', [
+  z.object({
+    correct: z.literal(false),
+    attempts: z.number().int().nonnegative(),
+    lockedUntil: z.iso.datetime().nullable(),
+  }),
+  z.object({
+    correct: z.literal(true),
+    action: z.enum(['inject_packets', 'swap_blocks', 'test_jwt']),
+    attempts: z.number().int().nonnegative(),
+    phase: chimeraPhaseSchema,
+    forgedJson: z.string().optional(),
+    secret: z.string().optional(),
+  }),
+]);
+export type ChimeraAttemptResponse = z.infer<typeof chimeraAttemptResponseSchema>;
+
+// ---------------------------------------------------------------------------
 // Game contracts (SDD §4: /game/*) — the public projection the server
 // returns; the client parses every response with these to fail fast.
 // ---------------------------------------------------------------------------
@@ -161,6 +237,27 @@ export const gameSessionResponseSchema = z.object({
     contextClue: z.string().nullable(),
     /** Whether the MEDIUM context-hint slot has been spent (false elsewhere). */
     contextUsed: z.boolean(),
+    /**
+     * CHIMERA-only mission state (Mission 05): the phases of the
+     * MitM → AES-ECB → JWT chain that the client needs to render the
+     * board. Derived server-side from the sealed `cipherParams`; secrets
+     * (AES key, target JSON) never leave the session row. The two
+     * intercepted packets and the player's proxy key are the phase-1
+     * material; the JWT signing secret is the phase-1 reward and appears
+     * once the proxy injection seizes the channel.
+     */
+    chimera: z
+      .object({
+        phase: chimeraPhaseSchema,
+        mitmDone: z.boolean(),
+        hqPacket: chimeraPacketSchema,
+        agentPacket: chimeraPacketSchema,
+        proxyKey: z.string(),
+        aesBlocks: z.array(z.string()),
+        originalJson: z.string(),
+        jwtSecret: z.string().nullable(),
+      })
+      .optional(),
   }),
 });
 export type GameSessionResponse = z.infer<typeof gameSessionResponseSchema>;

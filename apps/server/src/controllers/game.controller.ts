@@ -1,5 +1,5 @@
 import type { Request, RequestHandler } from 'express';
-import type { CreateGameSessionInput, HintRequestInput } from '@shiftcrack/shared';
+import type { ChimeraAttemptInput, CreateGameSessionInput, HintRequestInput } from '@shiftcrack/shared';
 import { ApiError } from '../lib/errors.js';
 import * as gameService from '../services/game.service.js';
 import { listModules } from '../services/modules.service.js';
@@ -27,6 +27,13 @@ export const getSession: RequestHandler = async (req, res) => {
 export const submitAttempt: RequestHandler = async (req, res) => {
   const answer = (req.body as { answer: string }).answer;
   res.json(await gameService.submitAttempt(req.params.id as string, userIdOf(req), answer));
+};
+
+/** Structured CHIMERA actions (inject_packets / swap_blocks / test_jwt). */
+export const submitChimeraAttempt: RequestHandler = async (req, res) => {
+  res.json(
+    await gameService.submitChimeraAttempt(req.params.id as string, userIdOf(req), req.body as ChimeraAttemptInput),
+  );
 };
 
 export const getModules: RequestHandler = async (_req, res) => {

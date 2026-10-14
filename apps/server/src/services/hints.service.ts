@@ -267,6 +267,16 @@ function buildVigenereHint(input: HintInput): string {
   return CAESAR_MESSAGES[language].firstWord(words[0] ?? '?');
 }
 
+/** CHIMERA: temporary stub — dedicated hint tiers arrive with the full UI. */
+const CHIMERA_HINT_MESSAGES: Record<Language, string> = {
+  uk: 'Протокол «Химера»: аналітичний відділ ще готує підказки для цієї місії. Спершу підмініть публічні ключі в обох перехоплених пакетах на свій проксі-ключ, потім зверніть увагу на однакові блоки шифротексту.',
+  en: 'CHIMERA protocol: the analysis desk is still drafting hints for this mission. First swap the public keys in both intercepted packets for your proxy key, then watch for identical ciphertext blocks.',
+};
+
+function buildChimeraHint(input: HintInput): string {
+  return CHIMERA_HINT_MESSAGES[input.language];
+}
+
 /** Fully isolated dispatch: each module gets only its own hint logic. */
 export function buildHint(input: HintInput): string {
   switch (input.module) {
@@ -278,5 +288,7 @@ export function buildHint(input: HintInput): string {
       return buildFrequencyHint(input);
     case 'VIGENERE':
       return buildVigenereHint(input);
+    case 'CHIMERA':
+      return buildChimeraHint(input);
   }
 }

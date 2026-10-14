@@ -7,6 +7,7 @@ import { TranspositionPanel } from '@/components/cipher/TranspositionPanel';
 import { VigenerePanel } from '@/components/cipher/VigenerePanel';
 import { FrequencyPanel } from '@/components/frequency/FrequencyPanel';
 import { AnswerPanel } from '@/components/game/AnswerPanel';
+import { ChimeraPanel } from '@/components/game/ChimeraPanel';
 import { ContextBanner } from '@/components/game/ContextBanner';
 import { HintsPanel } from '@/components/game/HintsPanel';
 import { HowToPlay } from '@/components/game/HowToPlay';
@@ -91,6 +92,7 @@ export function GamePlay({ module }: { module: CipherModule }) {
           onUseCandidate={setAnswer}
         />
       )}
+      {module === 'CHIMERA' && <ChimeraPanel />}
 
       {module !== 'CAESAR' && <HintsPanel />}
     </div>

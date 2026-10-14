@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import {
+  chimeraAttemptSchema,
   createGameSessionSchema,
   hintRequestSchema,
   sessionIdSchema,
   submitAttemptSchema,
 } from '@shiftcrack/shared';
 import * as gameController from '../controllers/game.controller.js';
-import { attemptsLimiter } from '../middleware/rateLimiters.js';
+import { attemptsLimiter, chimeraLimiter } from '../middleware/rateLimiters.js';
 import { requireAuth } from '../middleware/session.js';
 import { validate } from '../middleware/validate.js';
 
@@ -31,6 +32,13 @@ gameRouter.post(
   validate(sessionParamsSchema, 'params'),
   validate(submitAttemptSchema),
   gameController.submitAttempt,
+);
+gameRouter.post(
+  '/sessions/:id/chimera',
+  chimeraLimiter,
+  validate(sessionParamsSchema, 'params'),
+  validate(chimeraAttemptSchema),
+  gameController.submitChimeraAttempt,
 );
 gameRouter.post(
   '/sessions/:id/hints',

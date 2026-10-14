@@ -145,7 +145,7 @@ async function main() {
   const modulesRes = await request(`${GAME_BASE}/modules`, { headers });
   assert(modulesRes.status === 200, `expected 200 on /game/modules, got ${modulesRes.status}`);
   const modules = (modulesRes.body.modules ?? []) as Record<string, unknown>[];
-  assert(modules.length === 4, `expected 4 modules, got ${modules.length}`);
+  assert(modules.length === 5, `expected 5 modules, got ${modules.length}`);
   assert(
     modules.every((m) => typeof m.id === 'string' && typeof m.slug === 'string' && Array.isArray(m.difficulties)),
     'module metadata shape wrong',

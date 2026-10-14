@@ -1,6 +1,7 @@
 import type { CipherModule, Difficulty, Language } from '@shiftcrack/shared';
 import { getAlphabet, normalizeText, preparePlaintext, randomIntInRange, sha256Hex } from '../lib/text.js';
 import { caesarDecrypt, caesarEncrypt, generateCaesarShift } from './ciphers/caesar.js';
+import { generateChimeraChallenge } from './ciphers/chimera.js';
 import { generateSubstitution, substitute } from './ciphers/substitution.js';
 import { generateRouteParams, routeDecrypt, routeEncrypt } from './ciphers/transposition.js';
 import { generateVigenereKey, vigenereDecrypt, vigenereEncrypt } from './ciphers/vigenere.js';
@@ -163,6 +164,13 @@ export function generateChallenge(input: {
   difficulty: Difficulty;
   language: Language;
 }): GeneratedChallenge {
+  // CHIMERA (Mission 05) is a three-phase composite challenge with no
+  // corpus phrase: the "plaintext" is the target JSON assembled from the
+  // MitM / AES-ECB / JWT phases (see ciphers/chimera.ts).
+  if (input.module === 'CHIMERA') {
+    return generateChimeraChallenge();
+  }
+
   const alphabet = getAlphabet(input.language);
   if (input.module === 'TRANSPOSITION') {
     return generateTranspositionChallenge(input.language, input.difficulty, alphabet);
@@ -233,5 +241,9 @@ export function decryptCiphertext(
       return substitute(ciphertext, alphabet, cipherParams.alphabet as string, 'decrypt');
     case 'VIGENERE':
       return vigenereDecrypt(ciphertext, String(cipherParams.key ?? ''), alphabet);
+    case 'CHIMERA':
+      // CHIMERA is never decrypted from cipher params — the target JSON is
+      // sealed in the params and revealed only after all three phases.
+      throw new Error('CHIMERA plaintext is not derivable from cipher params alone');
   }
 }

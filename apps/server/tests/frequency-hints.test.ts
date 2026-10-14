@@ -85,11 +85,19 @@ describe('buildHint — other modules stay unchanged', () => {
 });
 
 describe('listModules', () => {
-  it('lists all four modules with their difficulties', () => {
+  it('lists all five modules with their difficulties', () => {
     const modules = listModules();
-    expect(modules.map((m) => m.id).sort()).toEqual(['CAESAR', 'FREQUENCY', 'TRANSPOSITION', 'VIGENERE']);
+    expect(modules.map((m) => m.id).sort()).toEqual([
+      'CAESAR',
+      'CHIMERA',
+      'FREQUENCY',
+      'TRANSPOSITION',
+      'VIGENERE',
+    ]);
     for (const module of modules) {
-      expect(module.difficulties).toEqual(['EASY', 'MEDIUM', 'HARD']);
+      // Mission 05 (CHIMERA) is the three-phase composite challenge — HARD only.
+      const expected = module.id === 'CHIMERA' ? ['HARD'] : ['EASY', 'MEDIUM', 'HARD'];
+      expect(module.difficulties).toEqual(expected);
       expect(module.slug).toBe(module.id.toLowerCase());
     }
   });

@@ -4,6 +4,9 @@ import { create } from 'zustand';
 import type {
   AbandonResponse,
   AttemptResponse,
+  ChimeraAttemptResponse,
+  ChimeraPacket,
+  ChimeraPhase,
   CipherModule,
   Difficulty,
   GameSessionResponse,
@@ -15,6 +18,8 @@ import type {
 import {
   abandonResponseSchema,
   attemptResponseSchema,
+  chimeraAttemptResponseSchema,
+  chimeraPacketSchema,
   gameSessionResponseSchema,
   hintResponseSchema,
 } from '@shiftcrack/shared';
@@ -27,6 +32,12 @@ import { api, ApiError } from '@/lib/api';
  * switching modules never leaks attempts/hints/ciphertext from another
  * module. The id is dropped once the session terminates (solved/failed/
  * expired/abandoned/reset).
+ *
+ * CHIMERA (Mission 05) additionally carries live mission state: the phase
+ * (1 MitM, 2 ECB, 3 JWT), the two intercepted wire packets, the player's
+ * proxy key, the injection-success flag and the rewards of later phases.
+ * It is derived from `session.meta.chimera` on start/resume and advanced
+ * by the structured attempt actions.
  */
 export type GameStatus = 'idle' | 'playing' | 'solved' | 'failed';
 
@@ -75,7 +86,55 @@ export function getSavedGame(module: CipherModule): SavedGame | null {
   }
 }
 
-interface GameState {
+/** The public CHIMERA projection of a session (subset of the sealed params). */
+export type ChimeraMeta = NonNullable<GameSessionResponse['meta']['chimera']>;
+
+/**
+ * Outcome of a phase-1 packet injection attempt:
+ * - `invalid_json`: a textarea does not hold a parseable packet;
+ * - `bad_route`: the forged packet changed its `src`/`dst`;
+ * - `bad_key`: `pub_key` was not replaced with the proxy key;
+ * - `rejected`: the server refused the packets.
+ */
+export type MitMVerifyResult =
+  | { ok: true }
+  | { ok: false; reason: 'invalid_json' | 'bad_route' | 'bad_key' | 'rejected' };
+
+/** Parse and structurally validate one textarea payload as a wire packet. */
+function parsePacketText(text: string): ChimeraPacket | null {
+  try {
+    const parsed = chimeraPacketSchema.safeParse(JSON.parse(text));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+interface ChimeraState {
+  chimeraPhase: ChimeraPhase;
+  /** Phase 1: the two intercepted wire packets (HQ → Agent, Agent → HQ). */
+  interceptedPackets: { hqPacket: ChimeraPacket; agentPacket: ChimeraPacket } | null;
+  /** Phase 1: the player's proxy key to inject into both packets. */
+  proxyKey: string | null;
+  /** Phase 1 completed: the injection seized the key-exchange channel. */
+  isMitMSuccessful: boolean;
+  chimeraForgedJson: string | null;
+  /** Phase 1 reward: the JWT signing secret from the decrypted packet. */
+  chimeraSecret: string | null;
+  setChimeraPhase: (phase: ChimeraPhase) => void;
+  /**
+   * Phase 1: verify the two forged packets (local JSON/route/key check +
+   * server-side verification); returns the failure reason on rejection.
+   */
+  verifyMitMPackets: (hqPayload: string, agentPayload: string) => Promise<MitMVerifyResult>;
+  /** Phase 2: propose a block substitution; returns success. */
+  attemptSwap: (from: number, to: number) => Promise<boolean>;
+  /** Phase 3: submit the locally generated JWT; returns success. */
+  testJwt: (token: string) => Promise<boolean>;
+  resetChimera: () => void;
+}
+
+interface GameState extends ChimeraState {
   /** Module the live session belongs to; null when no session is loaded. */
   module: CipherModule | null;
   session: GameSessionResponse | null;
@@ -106,6 +165,15 @@ function errorOf(err: unknown): { error: string; errorCode: string } {
   };
 }
 
+const CHIMERA_SLATE = {
+  chimeraPhase: 1 as ChimeraPhase,
+  interceptedPackets: null as { hqPacket: ChimeraPacket; agentPacket: ChimeraPacket } | null,
+  proxyKey: null as string | null,
+  isMitMSuccessful: false,
+  chimeraForgedJson: null as string | null,
+  chimeraSecret: null as string | null,
+};
+
 const CLEAN_SLATE = {
   module: null as CipherModule | null,
   session: null,
@@ -115,7 +183,23 @@ const CLEAN_SLATE = {
   error: null,
   errorCode: null,
   elapsedSeconds: 0,
+  ...CHIMERA_SLATE,
 };
+
+/** Restore the CHIMERA board from the session meta (start + resume). */
+function chimeraStateFromMeta(meta: ChimeraMeta | undefined) {
+  if (!meta) return CHIMERA_SLATE;
+  return {
+    chimeraPhase: meta.phase,
+    interceptedPackets: { hqPacket: meta.hqPacket, agentPacket: meta.agentPacket },
+    proxyKey: meta.proxyKey,
+    isMitMSuccessful: meta.mitmDone,
+    chimeraForgedJson: null,
+    // The secret is re-exposed in meta once phase 1 completes, so a
+    // reload after the injection keeps the decrypted packet on screen.
+    chimeraSecret: meta.jwtSecret,
+  };
+}
 
 export const useGameStore = create<GameState>()((set, get) => ({
   ...CLEAN_SLATE,
@@ -129,7 +213,13 @@ export const useGameStore = create<GameState>()((set, get) => ({
         gameSessionResponseSchema,
       );
       saveGame(module, session.id);
-      set({ module, session, status: 'playing', elapsedSeconds: 0 });
+      set({
+        module,
+        session,
+        status: 'playing',
+        elapsedSeconds: 0,
+        ...chimeraStateFromMeta(session.meta.chimera),
+      });
     } catch (err) {
       set(errorOf(err));
       throw err;
@@ -148,11 +238,17 @@ export const useGameStore = create<GameState>()((set, get) => ({
         return false;
       }
       if (session.status === 'ACTIVE') {
-        set({ module, session, status: 'playing', elapsedSeconds: 0 });
+        set({
+          module,
+          session,
+          status: 'playing',
+          elapsedSeconds: 0,
+          ...chimeraStateFromMeta(session.meta.chimera),
+        });
         return true;
       }
       clearSavedGame(module);
-      set({ module, session, status: session.status === 'SOLVED' ? 'solved' : 'failed' });
+      set({ module, session, status: session.status === 'SOLVED' ? 'solved' : 'failed', ...CHIMERA_SLATE });
       return true;
     } catch (err) {
       clearSavedGame(module);
@@ -240,6 +336,120 @@ export const useGameStore = create<GameState>()((set, get) => ({
   },
 
   tick: () => set((state) => ({ elapsedSeconds: state.elapsedSeconds + 1 })),
+
+  // ---------------------------------------------------------------------
+  // CHIMERA (Mission 05)
+  // ---------------------------------------------------------------------
+
+  setChimeraPhase: (chimeraPhase) => set({ chimeraPhase }),
+
+  resetChimera: () => set(CHIMERA_SLATE),
+
+  verifyMitMPackets: async (hqPayload, agentPayload) => {
+    const { session, interceptedPackets, proxyKey } = get();
+    if (!session || !session.meta.chimera || !interceptedPackets) {
+      return { ok: false, reason: 'invalid_json' };
+    }
+    // Local structural check first — keeps obviously broken input (bad
+    // JSON, torn routes, untouched keys) off the wire entirely.
+    const hq = parsePacketText(hqPayload);
+    const agent = parsePacketText(agentPayload);
+    if (!hq || !agent) return { ok: false, reason: 'invalid_json' };
+    const routeOk =
+      hq.src === interceptedPackets.hqPacket.src &&
+      hq.dst === interceptedPackets.hqPacket.dst &&
+      agent.src === interceptedPackets.agentPacket.src &&
+      agent.dst === interceptedPackets.agentPacket.dst;
+    if (!routeOk) return { ok: false, reason: 'bad_route' };
+    const keyOk =
+      proxyKey !== null &&
+      hq.pub_key === proxyKey &&
+      agent.pub_key === proxyKey;
+    if (!keyOk) return { ok: false, reason: 'bad_key' };
+
+    set({ error: null, errorCode: null });
+    try {
+      const result = await api.post<ChimeraAttemptResponse>(
+        `/game/sessions/${session.id}/chimera`,
+        { action: 'inject_packets', hqPacket: hq, agentPacket: agent },
+        chimeraAttemptResponseSchema,
+      );
+      if (!result.correct) {
+        set({
+          session: { ...session, attempts: result.attempts, lockedUntil: result.lockedUntil },
+        });
+        return { ok: false, reason: 'rejected' };
+      }
+      // The channel is seized: the server hands over the decrypted packet
+      // with the JWT signing secret (phase-1 reward).
+      const meta = session.meta.chimera;
+      const chimeraSecret = result.secret ?? get().chimeraSecret;
+      set({
+        session: {
+          ...session,
+          attempts: result.attempts,
+          meta: {
+            ...session.meta,
+            chimera: { ...meta, mitmDone: true, jwtSecret: chimeraSecret },
+          },
+        },
+        isMitMSuccessful: true,
+        chimeraSecret,
+        // The phase stays 1 on purpose: once the injection succeeds the
+        // board must render the success state (decrypted packet + "TO
+        // PHASE 2"), and the button advances via setChimeraPhase(2).
+      });
+      return { ok: true };
+    } catch (err) {
+      set(errorOf(err));
+      return { ok: false, reason: 'rejected' };
+    }
+  },
+
+  attemptSwap: async (from, to) => {
+    const { session } = get();
+    if (!session) return false;
+    set({ error: null, errorCode: null });
+    try {
+      const result = await api.post<ChimeraAttemptResponse>(
+        `/game/sessions/${session.id}/chimera`,
+        { action: 'swap_blocks', from, to },
+        chimeraAttemptResponseSchema,
+      );
+      if (!result.correct) {
+        set({
+          session: { ...session, attempts: result.attempts, lockedUntil: result.lockedUntil },
+        });
+        return false;
+      }
+      set({
+        session: { ...session, attempts: result.attempts },
+        chimeraPhase: 3,
+        chimeraForgedJson: result.forgedJson ?? get().chimeraForgedJson,
+      });
+      return true;
+    } catch (err) {
+      set(errorOf(err));
+      return false;
+    }
+  },
+
+  testJwt: async (token) => {
+    const { session } = get();
+    if (!session) return false;
+    set({ error: null, errorCode: null });
+    try {
+      const result = await api.post<ChimeraAttemptResponse>(
+        `/game/sessions/${session.id}/chimera`,
+        { action: 'test_jwt', token },
+        chimeraAttemptResponseSchema,
+      );
+      return result.correct;
+    } catch (err) {
+      set(errorOf(err));
+      return false;
+    }
+  },
 
   resetLocal: () => set(CLEAN_SLATE),
 
