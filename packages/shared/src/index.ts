@@ -83,13 +83,39 @@ export const sessionIdSchema = z.string().cuid();
 // ---------------------------------------------------------------------------
 
 /**
+ * OWASP password policy (SDD §5): 8-128 chars, at least one lowercase,
+ * one uppercase, one digit and one special character. Enforced at the API
+ * edge on registration and password reset. Shared by both schemas so the
+ * policy can never drift between them.
+ */
+export const passwordPolicySchema = z
+  .string()
+  .min(8)
+  .max(128)
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,128}$/,
+    'Password must be 8-128 characters and include uppercase, lowercase, digit and special character',
+  );
+
+/**
+ * Public handle: 3-15 chars, letters/digits/`_`/`.`/`-` only. Kept strictly
+ * ASCII-safe so nicknames can never smuggle markup, control chars or
+ * confusable unicode into the UI or future leaderboard payloads.
+ */
+export const nicknameSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_.-]{3,15}$/, 'Nickname must be 3-15 characters: letters, digits, ".", "-" or "_"');
+
+/**
  * POST /auth/register — password policy is enforced at the API edge (≥ 8
  * chars, capped to avoid bcrypt DoS via absurdly long inputs). The email is
  * normalized (trim + lowercase) here so the canonical form is stored.
  */
 export const registerSchema = z.object({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
-  password: z.string().min(8).max(128),
+  nickname: nicknameSchema,
+  password: passwordPolicySchema,
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 
@@ -108,6 +134,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const authUserSchema = z.object({
   id: z.string(),
   email: z.string().nullable(),
+  nickname: z.string().nullable(),
   provider: z.string(),
 });
 export type AuthUser = z.infer<typeof authUserSchema>;
@@ -117,6 +144,43 @@ export const authResponseSchema = z.object({
   user: authUserSchema,
 });
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Password reset contracts (SDD §5, OWASP Forgot Password cheat sheet)
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /auth/forgot-password — email only, normalized like everywhere else.
+ * The endpoint always answers the same way whether or not the account
+ * exists (anti-enumeration).
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().max(254).pipe(z.email()),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+/** Raw reset token shape: a 256-bit CSPRNG value serialized as base64url. */
+export const resetTokenSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9_-]{43}$/, 'Invalid reset token');
+
+/**
+ * POST /auth/reset-password — the new password must satisfy the same OWASP
+ * policy as registration; the token identifies the account (no email
+ * needed, the token is the capability).
+ */
+export const resetPasswordSchema = z.object({
+  token: resetTokenSchema,
+  password: passwordPolicySchema,
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+/** Generic responses for both endpoints (never reveal account existence). */
+export const passwordResetResponseSchema = z.object({
+  status: z.literal('ok'),
+});
+export type PasswordResetResponse = z.infer<typeof passwordResetResponseSchema>;
 
 /**
  * GET /session/ping — lightweight keep-alive heartbeat. The client pings
@@ -223,7 +287,6 @@ export const gameSessionResponseSchema = z.object({
   lockedUntil: z.iso.datetime().nullable(),
   startedAt: z.iso.datetime(),
   solvedAt: z.iso.datetime().nullable(),
-  score: z.number().int().nullable(),
   expiresAt: z.iso.datetime(),
   meta: z.object({
     maxHints: z.number().int().nonnegative(),
@@ -263,8 +326,10 @@ export const gameSessionResponseSchema = z.object({
 export type GameSessionResponse = z.infer<typeof gameSessionResponseSchema>;
 
 /**
- * POST /game/sessions/:id/attempts — discriminated union: the plaintext and
- * score exist only on the success arm (SDD §4 plaintext isolation).
+ * POST /game/sessions/:id/attempts — discriminated union: the plaintext
+ * exists only on the success arm (SDD §4 plaintext isolation). No score:
+ * leaderboards rank on pure solve time derived server-side from the
+ * session timestamps.
  */
 export const attemptResponseSchema = z.discriminatedUnion('correct', [
   z.object({
@@ -275,7 +340,6 @@ export const attemptResponseSchema = z.discriminatedUnion('correct', [
   z.object({
     correct: z.literal(true),
     plaintext: z.string(),
-    score: z.number().int().positive(),
     attempts: z.number().int().positive(),
     hintsUsed: z.number().int().nonnegative(),
   }),

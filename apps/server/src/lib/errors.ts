@@ -13,6 +13,7 @@ export type ApiErrorCode =
   | 'SESSION_NOT_ACTIVE'
   | 'CONTEXT_UNAVAILABLE'
   | 'CHIMERA_PHASE'
+  | 'RESET_TOKEN_INVALID'
   | 'INTERNAL';
 
 /**

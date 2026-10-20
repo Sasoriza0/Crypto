@@ -271,7 +271,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
       set(
         result.correct
           ? {
-              session: { ...session, status: 'SOLVED', score: result.score },
+              session: { ...session, status: 'SOLVED', solvedAt: new Date().toISOString() },
               status: 'solved',
               lastAttempt: result,
             }

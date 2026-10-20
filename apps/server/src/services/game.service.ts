@@ -9,7 +9,6 @@ import { buildContextHint, buildHint, getMaxHints } from './hints.service.js';
 import { decryptCiphertext, generateChallenge } from './phrase.service.js';
 import * as enCorpus from './phrases/en.js';
 import * as ukCorpus from './phrases/uk.js';
-import { computeScore } from './scoring.service.js';
 
 /**
  * Game session lifecycle (SDD §4): create, attempt, hint, view, abandon,
@@ -55,7 +54,6 @@ export interface PublicGameSession {
   lockedUntil: Date | null;
   startedAt: Date;
   solvedAt: Date | null;
-  score: number | null;
   expiresAt: Date;
   meta: {
     maxHints: number;
@@ -123,7 +121,6 @@ function toPublicSession(session: GameSession): PublicGameSession {
     lockedUntil: session.lockedUntil,
     startedAt: session.startedAt,
     solvedAt: session.solvedAt,
-    score: session.score,
     expiresAt: session.expiresAt,
     meta: {
       maxHints,
@@ -207,7 +204,7 @@ async function touchGameSession(session: GameSession): Promise<void> {
 
 export type AttemptResult =
   | { correct: false; attempts: number; lockedUntil: Date | null }
-  | { correct: true; plaintext: string; score: number; attempts: number; hintsUsed: number };
+  | { correct: true; plaintext: string; attempts: number; hintsUsed: number };
 
 /**
  * Victory reveal: `decryptCiphertext` returns exactly the PREPARED text,
@@ -274,20 +271,15 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
   const plaintext = chimera
     ? chimera.targetJson
     : revealPlaintext(session.language as Language, decrypted);
-  const elapsedSeconds = (Date.now() - session.startedAt.getTime()) / 1000;
-  const score = computeScore({
-    difficulty: session.difficulty,
-    elapsedSeconds,
-    attempts,
-    hintsUsed: session.hintsUsed,
-  });
 
+  // Leaderboards rank on pure solve time (solvedAt - startedAt), so only
+  // the attempts/counters and the solve timestamp are persisted — no score.
   await prisma.gameSession.update({
     where: { id: session.id },
-    data: { attempts, status: 'SOLVED', solvedAt: new Date(), score, lockedUntil: null },
+    data: { attempts, status: 'SOLVED', solvedAt: new Date(), lockedUntil: null },
   });
 
-  return { correct: true, plaintext, score, attempts, hintsUsed: session.hintsUsed };
+  return { correct: true, plaintext, attempts, hintsUsed: session.hintsUsed };
 }
 
 /**

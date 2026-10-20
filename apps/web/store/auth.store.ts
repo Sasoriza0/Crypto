@@ -1,8 +1,8 @@
 'use client';
 
 import { create } from 'zustand';
-import type { AuthResponse, AuthUser } from '@shiftcrack/shared';
-import { authResponseSchema } from '@shiftcrack/shared';
+import type { AuthResponse, AuthUser, PasswordResetResponse } from '@shiftcrack/shared';
+import { authResponseSchema, passwordResetResponseSchema } from '@shiftcrack/shared';
 import { api, setUnauthorizedHandler } from '@/lib/api';
 
 /**
@@ -18,9 +18,13 @@ interface AuthState {
   status: AuthStatus;
   hydrate: () => Promise<void>;
   playAnonymously: () => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, nickname: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** Forgot flow — the API always answers the same way (anti-enumeration). */
+  forgotPassword: (email: string) => Promise<void>;
+  /** Reset flow — consumes the single-use token from the email link. */
+  resetPassword: (token: string, password: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -42,8 +46,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
     set({ user, status: 'authenticated' });
   },
 
-  register: async (email, password) => {
-    const { user } = await api.post<AuthResponse>('/auth/register', { email, password }, authResponseSchema);
+  register: async (email, nickname, password) => {
+    const { user } = await api.post<AuthResponse>('/auth/register', { email, nickname, password }, authResponseSchema);
     set({ user, status: 'authenticated' });
   },
 
@@ -58,6 +62,14 @@ export const useAuthStore = create<AuthState>()((set) => ({
     } finally {
       set({ user: null, status: 'anonymous' });
     }
+  },
+
+  forgotPassword: async (email) => {
+    await api.post<PasswordResetResponse>('/auth/forgot-password', { email }, passwordResetResponseSchema);
+  },
+
+  resetPassword: async (token, password) => {
+    await api.post<PasswordResetResponse>('/auth/reset-password', { token, password }, passwordResetResponseSchema);
   },
 
   reset: () => set({ user: null, status: 'anonymous' }),

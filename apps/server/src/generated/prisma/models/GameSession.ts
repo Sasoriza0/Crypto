@@ -29,13 +29,11 @@ export type AggregateGameSession = {
 export type GameSessionAvgAggregateOutputType = {
   attempts: number | null
   hintsUsed: number | null
-  score: number | null
 }
 
 export type GameSessionSumAggregateOutputType = {
   attempts: number | null
   hintsUsed: number | null
-  score: number | null
 }
 
 export type GameSessionMinAggregateOutputType = {
@@ -51,7 +49,6 @@ export type GameSessionMinAggregateOutputType = {
   status: $Enums.SessionStatus | null
   attempts: number | null
   hintsUsed: number | null
-  score: number | null
   lockedUntil: Date | null
   startedAt: Date | null
   solvedAt: Date | null
@@ -71,7 +68,6 @@ export type GameSessionMaxAggregateOutputType = {
   status: $Enums.SessionStatus | null
   attempts: number | null
   hintsUsed: number | null
-  score: number | null
   lockedUntil: Date | null
   startedAt: Date | null
   solvedAt: Date | null
@@ -92,7 +88,6 @@ export type GameSessionCountAggregateOutputType = {
   status: number
   attempts: number
   hintsUsed: number
-  score: number
   lockedUntil: number
   startedAt: number
   solvedAt: number
@@ -104,13 +99,11 @@ export type GameSessionCountAggregateOutputType = {
 export type GameSessionAvgAggregateInputType = {
   attempts?: true
   hintsUsed?: true
-  score?: true
 }
 
 export type GameSessionSumAggregateInputType = {
   attempts?: true
   hintsUsed?: true
-  score?: true
 }
 
 export type GameSessionMinAggregateInputType = {
@@ -126,7 +119,6 @@ export type GameSessionMinAggregateInputType = {
   status?: true
   attempts?: true
   hintsUsed?: true
-  score?: true
   lockedUntil?: true
   startedAt?: true
   solvedAt?: true
@@ -146,7 +138,6 @@ export type GameSessionMaxAggregateInputType = {
   status?: true
   attempts?: true
   hintsUsed?: true
-  score?: true
   lockedUntil?: true
   startedAt?: true
   solvedAt?: true
@@ -167,7 +158,6 @@ export type GameSessionCountAggregateInputType = {
   status?: true
   attempts?: true
   hintsUsed?: true
-  score?: true
   lockedUntil?: true
   startedAt?: true
   solvedAt?: true
@@ -275,7 +265,6 @@ export type GameSessionGroupByOutputType = {
   status: $Enums.SessionStatus
   attempts: number
   hintsUsed: number
-  score: number | null
   lockedUntil: Date | null
   startedAt: Date
   solvedAt: Date | null
@@ -319,7 +308,6 @@ export type GameSessionWhereInput = {
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
-  score?: Prisma.IntNullableFilter<"GameSession"> | number | null
   lockedUntil?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
   startedAt?: Prisma.DateTimeFilter<"GameSession"> | Date | string
   solvedAt?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
@@ -341,7 +329,6 @@ export type GameSessionOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrderInput | Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   solvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -366,7 +353,6 @@ export type GameSessionWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
-  score?: Prisma.IntNullableFilter<"GameSession"> | number | null
   lockedUntil?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
   startedAt?: Prisma.DateTimeFilter<"GameSession"> | Date | string
   solvedAt?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
@@ -388,7 +374,6 @@ export type GameSessionOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrderInput | Prisma.SortOrder
   lockedUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   solvedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -417,7 +402,6 @@ export type GameSessionScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumSessionStatusWithAggregatesFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntWithAggregatesFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntWithAggregatesFilter<"GameSession"> | number
-  score?: Prisma.IntNullableWithAggregatesFilter<"GameSession"> | number | null
   lockedUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"GameSession"> | Date | string | null
   startedAt?: Prisma.DateTimeWithAggregatesFilter<"GameSession"> | Date | string
   solvedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"GameSession"> | Date | string | null
@@ -437,7 +421,6 @@ export type GameSessionCreateInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -459,7 +442,6 @@ export type GameSessionUncheckedCreateInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -479,7 +461,6 @@ export type GameSessionUpdateInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -501,7 +482,6 @@ export type GameSessionUncheckedUpdateInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -522,7 +502,6 @@ export type GameSessionCreateManyInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -542,7 +521,6 @@ export type GameSessionUpdateManyMutationInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -563,7 +541,6 @@ export type GameSessionUncheckedUpdateManyInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -594,7 +571,6 @@ export type GameSessionCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   solvedAt?: Prisma.SortOrder
@@ -604,7 +580,6 @@ export type GameSessionCountOrderByAggregateInput = {
 export type GameSessionAvgOrderByAggregateInput = {
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrder
 }
 
 export type GameSessionMaxOrderByAggregateInput = {
@@ -620,7 +595,6 @@ export type GameSessionMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   solvedAt?: Prisma.SortOrder
@@ -640,7 +614,6 @@ export type GameSessionMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrder
   lockedUntil?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   solvedAt?: Prisma.SortOrder
@@ -650,7 +623,6 @@ export type GameSessionMinOrderByAggregateInput = {
 export type GameSessionSumOrderByAggregateInput = {
   attempts?: Prisma.SortOrder
   hintsUsed?: Prisma.SortOrder
-  score?: Prisma.SortOrder
 }
 
 export type GameSessionCreateNestedManyWithoutUserInput = {
@@ -719,14 +691,6 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
@@ -744,7 +708,6 @@ export type GameSessionCreateWithoutUserInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -764,7 +727,6 @@ export type GameSessionUncheckedCreateWithoutUserInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -814,7 +776,6 @@ export type GameSessionScalarWhereInput = {
   status?: Prisma.EnumSessionStatusFilter<"GameSession"> | $Enums.SessionStatus
   attempts?: Prisma.IntFilter<"GameSession"> | number
   hintsUsed?: Prisma.IntFilter<"GameSession"> | number
-  score?: Prisma.IntNullableFilter<"GameSession"> | number | null
   lockedUntil?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
   startedAt?: Prisma.DateTimeFilter<"GameSession"> | Date | string
   solvedAt?: Prisma.DateTimeNullableFilter<"GameSession"> | Date | string | null
@@ -834,7 +795,6 @@ export type GameSessionCreateManyUserInput = {
   status?: $Enums.SessionStatus
   attempts?: number
   hintsUsed?: number
-  score?: number | null
   lockedUntil?: Date | string | null
   startedAt?: Date | string
   solvedAt?: Date | string | null
@@ -854,7 +814,6 @@ export type GameSessionUpdateWithoutUserInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -874,7 +833,6 @@ export type GameSessionUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -894,7 +852,6 @@ export type GameSessionUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   hintsUsed?: Prisma.IntFieldUpdateOperationsInput | number
-  score?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lockedUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   solvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -917,7 +874,6 @@ export type GameSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
-  score?: boolean
   lockedUntil?: boolean
   startedAt?: boolean
   solvedAt?: boolean
@@ -939,7 +895,6 @@ export type GameSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
-  score?: boolean
   lockedUntil?: boolean
   startedAt?: boolean
   solvedAt?: boolean
@@ -961,7 +916,6 @@ export type GameSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
-  score?: boolean
   lockedUntil?: boolean
   startedAt?: boolean
   solvedAt?: boolean
@@ -983,14 +937,13 @@ export type GameSessionSelectScalar = {
   status?: boolean
   attempts?: boolean
   hintsUsed?: boolean
-  score?: boolean
   lockedUntil?: boolean
   startedAt?: boolean
   solvedAt?: boolean
   expiresAt?: boolean
 }
 
-export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "module" | "difficulty" | "language" | "ciphertext" | "plaintextHash" | "cipherParams" | "contextClue" | "contextUsed" | "status" | "attempts" | "hintsUsed" | "score" | "lockedUntil" | "startedAt" | "solvedAt" | "expiresAt", ExtArgs["result"]["gameSession"]>
+export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "module" | "difficulty" | "language" | "ciphertext" | "plaintextHash" | "cipherParams" | "contextClue" | "contextUsed" | "status" | "attempts" | "hintsUsed" | "lockedUntil" | "startedAt" | "solvedAt" | "expiresAt", ExtArgs["result"]["gameSession"]>
 export type GameSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -1020,7 +973,6 @@ export type $GameSessionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     status: $Enums.SessionStatus
     attempts: number
     hintsUsed: number
-    score: number | null
     lockedUntil: Date | null
     startedAt: Date
     solvedAt: Date | null
@@ -1462,7 +1414,6 @@ export interface GameSessionFieldRefs {
   readonly status: Prisma.FieldRef<"GameSession", 'SessionStatus'>
   readonly attempts: Prisma.FieldRef<"GameSession", 'Int'>
   readonly hintsUsed: Prisma.FieldRef<"GameSession", 'Int'>
-  readonly score: Prisma.FieldRef<"GameSession", 'Int'>
   readonly lockedUntil: Prisma.FieldRef<"GameSession", 'DateTime'>
   readonly startedAt: Prisma.FieldRef<"GameSession", 'DateTime'>
   readonly solvedAt: Prisma.FieldRef<"GameSession", 'DateTime'>

@@ -7,6 +7,10 @@
  * hints -> EASY no-lockout -> MEDIUM lockout -> abandon), reusing the
  * session cookie end to end.
  *
+ * Idempotent: every run registers a fresh unique account
+ * (`smoke_<runId>@example.com`), so leftover rows from a previously crashed
+ * run can never collide with the next one.
+ *
  * Run: npm run smoke --workspace @shiftcrack/server
  */
 import 'dotenv/config';
@@ -18,6 +22,12 @@ const JSON_HEADERS = { 'content-type': 'application/json' };
 const GAME_BASE = `${API}/game`;
 const AUTH_BASE = `${API}/auth`;
 
+// Unique per-run identity. base36 keeps the nickname within the 3-15 char
+// policy ("smoke_" + 8 chars = 14) while the suffix never repeats.
+const RUN_ID = Date.now().toString(36).slice(-8);
+const EMAIL = `smoke_${RUN_ID}@example.com`;
+const NICKNAME = `smoke_${RUN_ID}`;
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(`SMOKE FAILED: ${message}`);
 }
@@ -28,7 +38,17 @@ async function request(
 ): Promise<{ status: number; body: Record<string, unknown>; headers: Headers }> {
   const res = await fetch(path, init);
   const text = await res.text();
-  return { status: res.status, body: text ? (JSON.parse(text) as Record<string, unknown>) : {}, headers: res.headers };
+  let body: Record<string, unknown> = {};
+  if (text) {
+    try {
+      body = JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      // Non-JSON bodies (e.g. a proxy's plain-text 429) must not crash the
+      // runner — keep the raw text so assert messages stay readable.
+      body = { __raw: text };
+    }
+  }
+  return { status: res.status, body, headers: res.headers };
 }
 
 async function main() {
@@ -63,44 +83,96 @@ async function main() {
     `ping failed: ${pingRes.status} ${JSON.stringify(pingRes.body)}`,
   );
 
-  // Register: 400 on weak password, then 201 with email
+  // Register: 400 on weak password, then 201 with email + nickname
   const weak = await request(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ email: 'smoke@example.com', password: 'short' }),
+    body: JSON.stringify({ email: EMAIL, nickname: NICKNAME, password: 'short' }),
   });
   assert(weak.status === 400, `expected 400 on weak password, got ${weak.status}`);
+
+  // 400 when the password lacks a required character class (OWASP policy)
+  const noSpecial = await request(`${AUTH_BASE}/register`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email: EMAIL, nickname: NICKNAME, password: 'Cipher2026' }),
+  });
+  assert(noSpecial.status === 400, `expected 400 on password without special char, got ${noSpecial.status}`);
+
+  // 400 on unsafe nickname characters
+  const badNick = await request(`${AUTH_BASE}/register`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email: EMAIL, nickname: 'bad nick!', password: 'Cipher!2026' }),
+  });
+  assert(badNick.status === 400, `expected 400 on unsafe nickname, got ${badNick.status}`);
 
   const reg = await request(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ email: 'SMOKE@Example.com ', password: 'password123' }),
+    body: JSON.stringify({ email: ` SMOKE_${RUN_ID.toUpperCase()}@Example.COM `, nickname: NICKNAME, password: 'Cipher!2026' }),
   });
   assert(reg.status === 201, `expected 201 on register, got ${reg.status}: ${JSON.stringify(reg.body)}`);
   const regUser = (reg.body.user ?? {}) as Record<string, unknown>;
-  assert(regUser.email === 'smoke@example.com' && regUser.provider === 'local', 'registered user shape wrong');
+  assert(
+    regUser.email === EMAIL && regUser.provider === 'local' && regUser.nickname === NICKNAME,
+    'registered user shape wrong',
+  );
   const regCookie = reg.headers.get('set-cookie')?.split(';')[0] ?? '';
 
   // Duplicate email -> 409
   const dup = await request(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ email: 'smoke@example.com', password: 'password123' }),
+    body: JSON.stringify({ email: EMAIL, nickname: `other_${RUN_ID}`, password: 'Cipher!2026' }),
   });
   assert(dup.status === 409, `expected 409 on duplicate email, got ${dup.status}`);
+
+  // Duplicate nickname -> 409
+  const dupNick = await request(`${AUTH_BASE}/register`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email: `other_${RUN_ID}@example.com`, nickname: NICKNAME, password: 'Cipher!2026' }),
+  });
+  assert(dupNick.status === 409, `expected 409 on duplicate nickname, got ${dupNick.status}`);
+
+  // Forgot-password: identical 202 for known and unknown emails (no
+  // enumeration oracle); the letter itself lands in the server console
+  // because SMTP is not configured locally.
+  const forgotKnown = await request(`${AUTH_BASE}/forgot-password`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email: EMAIL }),
+  });
+  const forgotUnknown = await request(`${AUTH_BASE}/forgot-password`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ email: `ghost_${RUN_ID}@example.com` }),
+  });
+  assert(forgotKnown.status === 202, `expected 202 on forgot (known), got ${forgotKnown.status}`);
+  assert(forgotUnknown.status === 202, `expected 202 on forgot (unknown), got ${forgotUnknown.status}`);
+  assert(JSON.stringify(forgotKnown.body) === JSON.stringify(forgotUnknown.body), 'forgot responses differ (enumeration)');
+
+  // Reset with a garbage token -> generic 400, never account details
+  const badReset = await request(`${AUTH_BASE}/reset-password`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ token: 'A'.repeat(43), password: 'Cipher!2026' }),
+  });
+  assert(badReset.status === 400, `expected 400 on garbage reset token, got ${badReset.status}`);
 
   // Login: wrong password -> 401; correct -> 200 with a rotated session id
   const badLogin = await request(`${AUTH_BASE}/login`, {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ email: 'smoke@example.com', password: 'wrong-password' }),
+    body: JSON.stringify({ email: EMAIL, password: 'wrong-password' }),
   });
   assert(badLogin.status === 401, `expected 401 on bad login, got ${badLogin.status}`);
 
   const goodLogin = await request(`${AUTH_BASE}/login`, {
     method: 'POST',
     headers: JSON_HEADERS,
-    body: JSON.stringify({ email: 'smoke@example.com', password: 'password123' }),
+    body: JSON.stringify({ email: EMAIL, password: 'Cipher!2026' }),
   });
   assert(goodLogin.status === 200, `expected 200 on login, got ${goodLogin.status}: ${JSON.stringify(goodLogin.body)}`);
   const loginCookie = goodLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
@@ -209,8 +281,9 @@ async function main() {
     }
   }
   assert(solved !== null, `correct answer was not accepted. attempts:\n${attemptLog.join('\n')}`);
-  assert(typeof solved.score === 'number' && solved.score > 0, 'score missing on solve');
+  assert('score' in solved === false, 'score must be gone (leaderboards rank on solve time)');
   assert(typeof solved.plaintext === 'string' && solved.plaintext.length > 0, 'plaintext missing on solve');
+  assert(typeof solved.attempts === 'number' && typeof solved.hintsUsed === 'number', 'solve counters missing');
 
   // Session is now SOLVED; attempts are rejected
   const afterSolve = await request(`${GAME_BASE}/sessions/${sessionId}/attempts`, {
@@ -368,7 +441,7 @@ async function main() {
   // first; the Session rows cascade with their users.
   await prisma.gameSession.deleteMany({ where: { userId: cleanupUserId } });
   await prisma.user.delete({ where: { id: cleanupUserId } });
-  await prisma.user.delete({ where: { email: 'smoke@example.com' } });
+  await prisma.user.delete({ where: { email: EMAIL } });
 
   console.log('SMOKE OK: auth (anonymous/register/login/me/logout) + session ping + game (modules -> create -> hints -> solve -> guards -> EASY no-lockout -> MEDIUM lockout -> abandon -> frequency hints -> vigenere spaces + 2-tier hints)');
 }

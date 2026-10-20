@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import type { User } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { ApiError } from '../lib/errors.js';
 import { prisma } from '../prisma/client.js';
 import { createSession, revokeSession } from './session.service.js';
@@ -34,8 +35,8 @@ export async function hashPassword(password: string, cost = bcryptCost()): Promi
 const DUMMY_HASH = '$2b$10$537A6ZIWY1AnP7wVBZZy4OAAaz6wc.RWn5lhukT3O2PYYJ.ordrF6';
 
 /** Public projection: the password hash never leaves the service layer. */
-export function toPublicUser(user: User): { id: string; email: string | null; provider: string } {
-  return { id: user.id, email: user.email, provider: user.provider };
+export function toPublicUser(user: User): { id: string; email: string | null; nickname: string | null; provider: string } {
+  return { id: user.id, email: user.email, nickname: user.nickname, provider: user.provider };
 }
 
 export async function anonymousLogin(): Promise<{ user: User; sessionId: string }> {
@@ -44,20 +45,42 @@ export async function anonymousLogin(): Promise<{ user: User; sessionId: string 
   return { user, sessionId: session.id };
 }
 
+/**
+ * Maps a Prisma unique-constraint violation (P2002) to a 409 CONFLICT that
+ * names the colliding field, so the client can focus the right input. Any
+ * other constraint failure is rethrown as-is.
+ */
+export function uniqueConflictError(err: unknown): ApiError | null {
+  if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== 'P2002') return null;
+  const target = JSON.stringify(err.meta?.target ?? '');
+  if (target.includes('email')) {
+    return new ApiError(409, 'CONFLICT', 'An account with this email already exists', { field: 'email' });
+  }
+  if (target.includes('nickname')) {
+    return new ApiError(409, 'CONFLICT', 'This nickname is already taken', { field: 'nickname' });
+  }
+  return new ApiError(409, 'CONFLICT', 'An account with these details already exists');
+}
+
 export async function register(
   email: string,
+  nickname: string,
   password: string,
 ): Promise<{ user: User; sessionId: string }> {
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new ApiError(409, 'CONFLICT', 'An account with this email already exists');
+  try {
+    const user = await prisma.user.create({
+      data: { email, nickname, passwordHash: await hashPassword(password), provider: 'local' },
+    });
+    const session = await createSession(user.id);
+    return { user, sessionId: session.id };
+  } catch (err) {
+    // Rely on the DB unique constraints instead of a racy find-then-create:
+    // two concurrent registrations with the same email/nickname race
+    // straight to P2002 and are mapped here deterministically.
+    const conflict = uniqueConflictError(err);
+    if (conflict) throw conflict;
+    throw err;
   }
-
-  const user = await prisma.user.create({
-    data: { email, passwordHash: await hashPassword(password), provider: 'local' },
-  });
-  const session = await createSession(user.id);
-  return { user, sessionId: session.id };
 }
 
 export async function login(

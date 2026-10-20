@@ -121,7 +121,7 @@ export function Header() {
       {status === 'authenticated' && (
         <div className="flex items-center gap-2">
           <span className="max-w-40 truncate font-mono text-xs uppercase tracking-widest text-fade">
-            {user?.email ?? t('auth.anonymousPlayer')}
+            {user?.nickname ?? user?.email ?? t('auth.anonymousPlayer')}
           </span>
           <button type="button" onClick={() => void logout()} className={controlClass}>
             {t('auth.logout')}

@@ -46,6 +46,16 @@ export async function revokeSession(id: string): Promise<void> {
 }
 
 /**
+ * Revoke every session of a user. Called after a password change/reset
+ * (OWASP: session invalidation on credential change) — any cookie stolen
+ * before the reset dies with it.
+ */
+export async function revokeUserSessions(userId: string): Promise<number> {
+  const result = await prisma.session.deleteMany({ where: { userId } });
+  return result.count;
+}
+
+/**
  * Sliding renewal: pushes the row's expiry forward by a full TTL. Called by
  * the session middleware once a session passes half its lifetime, so an
  * active player can never be dropped mid-solve. Returns the updated row so

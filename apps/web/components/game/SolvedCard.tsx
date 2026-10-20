@@ -4,15 +4,24 @@ import { MetaLabel } from '@/components/ui/MetaLabel';
 import { useT } from '@/lib/i18n';
 import { useGameStore } from '@/store/game.store';
 
-/** Success screen: the plaintext and score are revealed only on solve. */
+function formatSeconds(total: number): string {
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+/**
+ * Success screen: the plaintext is revealed only on solve. Leaderboards
+ * rank on pure solve time, so the card shows the elapsed time instead of
+ * the removed score.
+ */
 export function SolvedCard() {
   const t = useT();
-  const session = useGameStore((s) => s.session);
   const lastAttempt = useGameStore((s) => s.lastAttempt);
+  const elapsedSeconds = useGameStore((s) => s.elapsedSeconds);
   const reset = useGameStore((s) => s.reset);
 
   const plaintext = lastAttempt?.correct ? lastAttempt.plaintext : '';
-  const score = session?.score ?? (lastAttempt?.correct ? lastAttempt.score : 0);
 
   return (
     <div className="mt-2 max-w-xl border-2 border-ink bg-card p-6 shadow-[5px_5px_0_rgba(66,54,36,0.16)] sm:p-8">
@@ -35,7 +44,7 @@ export function SolvedCard() {
       )}
 
       <p className="mt-4 font-mono text-xs uppercase tracking-widest text-fade">
-        {t('game.solved.score')}: <strong className="text-red-700">{score}</strong>
+        {t('game.solved.time')}: <strong className="text-red-700">{formatSeconds(elapsedSeconds)}</strong>
       </p>
 
       <button

@@ -1,7 +1,8 @@
 import type { Request, RequestHandler, Response } from 'express';
-import type { AuthUser, LoginInput, RegisterInput } from '@shiftcrack/shared';
+import type { AuthUser, ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from '@shiftcrack/shared';
 import { ApiError } from '../lib/errors.js';
 import * as authService from '../services/auth.service.js';
+import * as passwordResetService from '../services/password-reset.service.js';
 import { SESSION_COOKIE, sessionCookieOptions } from '../services/session.service.js';
 
 /**
@@ -39,8 +40,8 @@ export const anonymous: RequestHandler = async (_req, res) => {
 };
 
 export const register: RequestHandler = async (req, res) => {
-  const { email, password } = req.body as RegisterInput;
-  const { user, sessionId } = await authService.register(email, password);
+  const { email, nickname, password } = req.body as RegisterInput;
+  const { user, sessionId } = await authService.register(email, nickname, password);
   setSessionCookie(res, sessionId);
   res.status(201).json(userPayload(user));
 };
@@ -55,6 +56,24 @@ export const login: RequestHandler = async (req, res) => {
 export const me: RequestHandler = async (req, res) => {
   const { user } = await authService.me(requireUserId(req));
   res.json(userPayload(user));
+};
+
+/**
+ * POST /auth/forgot-password — the handler is deliberately thin: the
+ * service answers the same way whether or not the account exists, so the
+ * 202 below is the only response anyone ever sees (anti-enumeration).
+ */
+export const forgotPassword: RequestHandler = async (req, res) => {
+  const { email } = req.body as ForgotPasswordInput;
+  await passwordResetService.requestPasswordReset(email);
+  res.status(202).json({ status: 'ok' });
+};
+
+/** POST /auth/reset-password — consumes the single-use token. */
+export const resetPassword: RequestHandler = async (req, res) => {
+  const { token, password } = req.body as ResetPasswordInput;
+  await passwordResetService.resetPassword(token, password);
+  res.json({ status: 'ok' });
 };
 
 export const logout: RequestHandler = async (req, res) => {

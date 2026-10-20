@@ -3,6 +3,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { errorHandler } from './lib/errors.js';
+import { effectiveLimit } from './middleware/rateLimiters.js';
 import { authRouter } from './routes/auth.js';
 import { gameRouter } from './routes/game.js';
 import { sessionRouter } from './routes/session.js';
@@ -57,9 +58,12 @@ export function createApp() {
   app.use(
     rateLimit({
       windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS ?? 15 * 60 * 1000),
-      limit: Number(process.env.RATE_LIMIT_MAX_REQUESTS ?? 100),
+      limit: effectiveLimit(Number(process.env.RATE_LIMIT_MAX_REQUESTS ?? 100)),
       standardHeaders: 'draft-8',
       legacyHeaders: false,
+      // Same JSON envelope as the per-endpoint limiters so clients (and the
+      // smoke script) always see a parseable body, never a bare string.
+      message: { error: { code: 'TOO_MANY_REQUESTS', message: 'Too many requests, try again later' } },
     }),
   );
 

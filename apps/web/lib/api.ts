@@ -13,12 +13,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
+  readonly details?: unknown;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -58,11 +60,12 @@ async function request<T>(path: string, { method, body, schema }: RequestOptions
   }
 
   if (!res.ok) {
-    const payload = (data ?? {}) as { error?: { code?: string; message?: string } };
+    const payload = (data ?? {}) as { error?: { code?: string; message?: string; details?: unknown } };
     throw new ApiError(
       res.status,
       payload.error?.code ?? 'HTTP_ERROR',
       payload.error?.message ?? `Request failed with status ${res.status}`,
+      payload.error?.details,
     );
   }
 
