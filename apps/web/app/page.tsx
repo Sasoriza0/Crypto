@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ManualDialog } from '@/components/manual/ManualDialog';
 import { MetaLabel } from '@/components/ui/MetaLabel';
 import { useT } from '@/lib/i18n';
 import { MISSIONS, type MissionDef } from '@/lib/missions';
@@ -24,6 +25,7 @@ export default function HomePage() {
   const locale = useI18nStore((s) => s.locale);
   const [busySlug, setBusySlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const startMission = async (mission: MissionDef) => {
     if (busySlug) return;
@@ -52,11 +54,18 @@ export default function HomePage() {
           {t('menu.intro')}
         </p>
         {error && <p className="mt-4 font-mono text-xs text-red-700">{error}</p>}
+
+        <button
+          type="button"
+          onClick={() => setManualOpen(true)}
+          className="mx-auto mt-5 inline-flex cursor-pointer items-center justify-center gap-2 border border-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-ink transition hover:border-red-700 hover:bg-inset hover:text-red-700"
+        >
+          § {t('manual.open')}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
-        {MISSIONS.map((mission) => {
-          const busy = busySlug === mission.slug;
+        {MISSIONS.map((mission) => {          const busy = busySlug === mission.slug;
           return (
             <article
               key={mission.slug}
@@ -93,6 +102,8 @@ export default function HomePage() {
           );
         })}
       </div>
+
+      <ManualDialog open={manualOpen} onClose={() => setManualOpen(false)} />
     </section>
   );
 }

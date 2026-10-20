@@ -12,6 +12,7 @@ import { ContextBanner } from '@/components/game/ContextBanner';
 import { HintsPanel } from '@/components/game/HintsPanel';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { StatusBar } from '@/components/game/StatusBar';
+import { CipherReference } from '@/components/manual/CipherReference';
 import { useFrequencyStore } from '@/store/frequency.store';
 import { useGameStore } from '@/store/game.store';
 
@@ -49,7 +50,10 @@ export function GamePlay({ module }: { module: CipherModule }) {
     <div className="mt-1 w-full p-3 md:p-6">
       <div className="flex flex-col gap-2 border-b border-tan pb-3 md:flex-row md:items-center md:justify-between">
         <StatusBar />
-        <HowToPlay module={module} />
+        <div className="flex flex-wrap items-center gap-2">
+          <CipherReference module={module} />
+          <HowToPlay module={module} />
+        </div>
       </div>
 
       {module === 'FREQUENCY' && <ContextBanner contextClue={session.meta.contextClue} />}
