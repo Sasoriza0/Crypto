@@ -1,21 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import { EN_ALPHABET, UK_ALPHABET } from '../src/lib/text.js';
-import { caesarDecrypt, caesarEncrypt, getCaesarShiftRange } from '../src/services/ciphers/caesar.js';
+import {
+  CAESAR_SHIFT_MAX,
+  CAESAR_SHIFT_MIN,
+  caesarDecrypt,
+  caesarEncrypt,
+  generateCaesarShift,
+} from '../src/services/ciphers/caesar.js';
 import { generateSubstitution, substitute } from '../src/services/ciphers/substitution.js';
 import {
   ROUTES,
   generateRouteParams,
-  getRouteParamsRange,
   routeCellOrder,
   routeDecrypt,
   routeEncrypt,
 } from '../src/services/ciphers/transposition.js';
 import {
+  VIGENERE_KEY_MAX,
+  VIGENERE_KEY_MIN,
   generateVigenereKey,
-  getVigenereKeyRange,
   vigenereDecrypt,
   vigenereEncrypt,
 } from '../src/services/ciphers/vigenere.js';
+
+/**
+ * Story-fixed missions: the legacy EASY/MEDIUM/HARD tiers are gone. Every
+ * cipher generator now follows ONE balanced profile — Caesar shifts 4–15,
+ * Vigenère keys 5–6 letters, route fills from the fixed snake + clockwise
+ * spiral pool.
+ */
+
+/** Fixed route pool that the generator may produce (CCW spirals are legacy-only). */
+const GENERATED_ROUTES = [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE, ROUTES.SPIRAL_CW];
 
 describe('caesar cipher', () => {
   it('round-trips on the English alphabet for every shift', () => {
@@ -35,10 +51,20 @@ describe('caesar cipher', () => {
     expect(caesarEncrypt('a-b c', 1, EN_ALPHABET)).toBe('b-c d');
   });
 
-  it('uses the difficulty ranges defined in SDD §4', () => {
-    expect(getCaesarShiftRange('EASY', 33)).toEqual({ min: 1, max: 3 });
-    expect(getCaesarShiftRange('MEDIUM', 33)).toEqual({ min: 4, max: 15 });
-    expect(getCaesarShiftRange('HARD', 33)).toEqual({ min: 1, max: 32 });
+  it('generates shifts only in the fixed balanced range 4–15', () => {
+    for (let i = 0; i < 100; i++) {
+      const shift = generateCaesarShift(EN_ALPHABET.length);
+      expect(shift).toBeGreaterThanOrEqual(CAESAR_SHIFT_MIN);
+      expect(shift).toBeLessThanOrEqual(CAESAR_SHIFT_MAX);
+    }
+  });
+
+  it('clamps the fixed range to tiny alphabets', () => {
+    for (let i = 0; i < 50; i++) {
+      const shift = generateCaesarShift(5); // only shifts 1–4 exist
+      expect(shift).toBeGreaterThanOrEqual(1);
+      expect(shift).toBeLessThanOrEqual(4);
+    }
   });
 });
 
@@ -87,44 +113,21 @@ describe('route cipher', () => {
     expect(routeEncrypt('abcdef', 3, ROUTES.HORIZONTAL_SNAKE, 'x')).toBe('abcfed');
   });
 
-  it('generates route params: random 3–7 columns and rows at every difficulty', () => {
-    for (let i = 0; i < 50; i++) {
-      const easy = generateRouteParams('EASY');
-      expect(easy.cols).toBeGreaterThanOrEqual(3);
-      expect(easy.cols).toBeLessThanOrEqual(7);
-      expect(easy.rows).toBeGreaterThanOrEqual(3);
-      expect(easy.rows).toBeLessThanOrEqual(7);
-      expect(getRouteParamsRange('EASY').routes).toContain(easy.route);
-
-      const medium = generateRouteParams('MEDIUM');
-      expect(medium.cols).toBeGreaterThanOrEqual(3);
-      expect(medium.cols).toBeLessThanOrEqual(7);
-      expect(medium.rows).toBeGreaterThanOrEqual(3);
-      expect(medium.rows).toBeLessThanOrEqual(7);
-      expect(getRouteParamsRange('MEDIUM').routes).toContain(medium.route);
-
-      const hard = generateRouteParams('HARD');
-      expect(hard.cols).toBeGreaterThanOrEqual(3);
-      expect(hard.cols).toBeLessThanOrEqual(7);
-      expect(hard.rows).toBeGreaterThanOrEqual(3);
-      expect(hard.rows).toBeLessThanOrEqual(7);
-      expect(getRouteParamsRange('HARD').routes).toContain(hard.route);
+  it('generates route params: random 3–7 grid, fixed balanced route pool', () => {
+    for (let i = 0; i < 100; i++) {
+      const params = generateRouteParams();
+      expect(params.cols).toBeGreaterThanOrEqual(3);
+      expect(params.cols).toBeLessThanOrEqual(7);
+      expect(params.rows).toBeGreaterThanOrEqual(3);
+      expect(params.rows).toBeLessThanOrEqual(7);
+      expect(GENERATED_ROUTES).toContain(params.route);
     }
   });
 
-  it('limits route variety per difficulty (continuous routes only)', () => {
-    expect(getRouteParamsRange('EASY').routes).toEqual([ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE]);
-    expect(getRouteParamsRange('MEDIUM').routes).toEqual([
-      ROUTES.HORIZONTAL_SNAKE,
-      ROUTES.VERTICAL_SNAKE,
-      ROUTES.SPIRAL_CW,
-    ]);
-    expect(getRouteParamsRange('HARD').routes).toEqual([
-      ROUTES.HORIZONTAL_SNAKE,
-      ROUTES.VERTICAL_SNAKE,
-      ROUTES.SPIRAL_CW,
-      ROUTES.SPIRAL_CCW,
-    ]);
+  it('never generates counterclockwise spirals (legacy route, decryption only)', () => {
+    for (let i = 0; i < 100; i++) {
+      expect(generateRouteParams().route).not.toBe(ROUTES.SPIRAL_CCW);
+    }
   });
 });
 
@@ -236,22 +239,13 @@ describe('vigenere cipher', () => {
     expect(vigenereEncrypt('aaaaaaaaaa', 'ab', EN_ALPHABET)).toBe('ababababab');
   });
 
-  it('uses the difficulty key ranges (EASY 3–4, MEDIUM 5–6, HARD 7–9)', () => {
-    expect(getVigenereKeyRange('EASY')).toEqual({ min: 3, max: 4 });
-    expect(getVigenereKeyRange('MEDIUM')).toEqual({ min: 5, max: 6 });
-    expect(getVigenereKeyRange('HARD')).toEqual({ min: 7, max: 9 });
-  });
-
-  it('generates keys from the language alphabet with the difficulty length', () => {
-    for (const difficulty of ['EASY', 'MEDIUM', 'HARD'] as const) {
-      for (let i = 0; i < 20; i++) {
-        const key = generateVigenereKey('uk', difficulty);
-        const { min, max } = getVigenereKeyRange(difficulty);
-        expect(key.length).toBeGreaterThanOrEqual(min);
-        expect(key.length).toBeLessThanOrEqual(max);
-        for (const ch of key) {
-          expect(UK_ALPHABET.includes(ch)).toBe(true);
-        }
+  it('generates keys of the fixed balanced length 5–6 from the language alphabet', () => {
+    for (let i = 0; i < 100; i++) {
+      const key = generateVigenereKey('uk');
+      expect(key.length).toBeGreaterThanOrEqual(VIGENERE_KEY_MIN);
+      expect(key.length).toBeLessThanOrEqual(VIGENERE_KEY_MAX);
+      for (const ch of key) {
+        expect(UK_ALPHABET.includes(ch)).toBe(true);
       }
     }
   });

@@ -1,5 +1,5 @@
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
-import type { Difficulty, Language } from '@shiftcrack/shared';
+import type { Language } from '@shiftcrack/shared';
 
 /**
  * Plain-text utilities shared by cipher services and the game service.
@@ -27,23 +27,18 @@ export function normalizeText(input: string, alphabet: string): string {
 }
 
 /**
- * Difficulty-aware text preparation (SDD Phase 5 difficulty scaling):
- * - EASY: lowercase only — spaces and punctuation stay, so the player sees
- *   the word structure of the ciphertext;
- * - MEDIUM: punctuation stripped, spaces kept;
- * - HARD: everything stripped — a solid lowercase letter stream.
+ * Fixed balanced text preparation (legacy difficulty scaling removed):
+ * lowercase, strip punctuation, keep spaces — the player sees the word
+ * structure of the message, which is what frequency counting and the
+ * Kasiski tool need. For solid letter streams use normalizeText.
  */
-export function preparePlaintext(text: string, alphabet: string, difficulty: Difficulty): string {
-  const lower = text.toLowerCase();
-  if (difficulty === 'EASY') return lower;
-  if (difficulty === 'MEDIUM') {
-    const allowed = new Set(alphabet.toLowerCase().split(''));
-    return lower
-      .split('')
-      .filter((ch) => allowed.has(ch) || ch === ' ')
-      .join('');
-  }
-  return normalizeText(lower, alphabet);
+export function preparePlaintext(text: string, alphabet: string): string {
+  const allowed = new Set(alphabet.toLowerCase().split(''));
+  return text
+    .toLowerCase()
+    .split('')
+    .filter((ch) => allowed.has(ch) || ch === ' ')
+    .join('');
 }
 
 export function sha256Hex(input: string): string {

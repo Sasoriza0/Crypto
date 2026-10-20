@@ -1,25 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { UK_ALPHABET } from '../src/lib/text.js';
-import { buildHint, getMaxHints } from '../src/services/hints.service.js';
+import { buildHint, getMaxHints, MAX_CRYPTO_HINTS } from '../src/services/hints.service.js';
 
 /**
  * VIGENERE hint logic: the puzzle is the key — tier 1 reveals its length
  * (the Kasiski goal), tier 2 reveals the first key letter with its shift
- * (the first slider of the key-fitting tool), tier 3 reveals the first
- * plaintext word. VIGENERE keeps at least two tiers even at HARD (the
- * mission is the hardest, so one hint was too brutal).
+ * (the first slider of the key-fitting tool). Legacy difficulty budgets
+ * are gone: every module gets the same fixed two tiers.
  */
-describe('getMaxHints — VIGENERE budget', () => {
-  it('keeps the base budget for regular modules', () => {
-    expect(getMaxHints('EASY', 'CAESAR')).toBe(3);
-    expect(getMaxHints('MEDIUM', 'TRANSPOSITION')).toBe(2);
-    expect(getMaxHints('HARD', 'FREQUENCY')).toBe(1);
-  });
-
-  it('grants VIGENERE at least two crypto tiers at every difficulty', () => {
-    expect(getMaxHints('HARD', 'VIGENERE')).toBe(2);
-    expect(getMaxHints('MEDIUM', 'VIGENERE')).toBe(2);
-    expect(getMaxHints('EASY', 'VIGENERE')).toBe(3);
+describe('getMaxHints — fixed balanced budget', () => {
+  it('grants two crypto tiers to every module', () => {
+    for (const module of ['CAESAR', 'TRANSPOSITION', 'FREQUENCY', 'VIGENERE', 'CHIMERA'] as const) {
+      expect(getMaxHints(module)).toBe(MAX_CRYPTO_HINTS);
+    }
+    expect(MAX_CRYPTO_HINTS).toBe(2);
   });
 });
 

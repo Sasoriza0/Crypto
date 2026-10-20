@@ -1,49 +1,35 @@
-import type { CipherModule, Difficulty, Language } from '@shiftcrack/shared';
+import type { CipherModule, Language } from '@shiftcrack/shared';
 import { getAlphabet } from '../lib/text.js';
 import { decryptCiphertext } from './phrase.service.js';
 import type { RouteKind } from './ciphers/transposition.js';
 
 /**
- * Hint tiers. The number of available hints is inversely proportional to
- * difficulty (SDD §4): EASY 3, MEDIUM 2, HARD 1. Every tier leaks a bit
- * more about the challenge and costs a scoring penalty (applied by the
- * game service via `hintsUsed`).
+ * Hint tiers. Legacy difficulty scaling is gone (story-fixed missions):
+ * every module gets the same balanced budget of TWO crypto hint tiers.
  *
  * Each module has a fully isolated hint builder that leaks only
  * module-appropriate information:
  * - CAESAR: tier 1 → most frequent ciphertext letter; tier 2 → first
- *   plaintext letter; tier 3 → first plaintext word.
+ *   plaintext letter (the fixed 2-tier budget stops before the first word).
  * - TRANSPOSITION (route cipher, Phase 6): tier 1 → column count (the
- *   divisor test gets the player started); tier 2 → the fill route;
- *   tier 3 → first plaintext word.
+ *   divisor test gets the player started); tier 2 → the fill route.
  * - FREQUENCY: one concrete cipher→plain substitution per tier, preferring
  *   letters the player currently maps wrong (when the client submits its
  *   guesses).
  * - VIGENERE: tier 1 → key length (the Kasiski goal); tier 2 → the first
- *   key letter (the first slider of the key-fitting tool); tier 3 → first
- *   plaintext word.
+ *   key letter (the first slider of the key-fitting tool).
  *
- * On MEDIUM the player may additionally spend one hint on the thematic
- * context clue (stored on the session row); it is priced like any hint
- * but does not advance the crypto tiers (see buildContextHint).
+ * On MEDIUM-difficulty sessions (TRANSPOSITION in the fixed roster) the
+ * player may additionally spend one hint on the thematic context clue
+ * (stored on the session row); it is priced like any hint but does not
+ * advance the crypto tiers (see buildContextHint).
  */
 
-export function getMaxHints(difficulty: Difficulty, module?: CipherModule): number {
-  const base = (() => {
-    switch (difficulty) {
-      case 'EASY':
-        return 3;
-      case 'MEDIUM':
-        return 2;
-      case 'HARD':
-        return 1;
-    }
-  })();
-  // VIGENERE is the hardest mission (Kasiski period discovery + per-position
-  // key fitting), so even at HARD it gets at least two crypto tiers:
-  // tier 1 → key length, tier 2 → first key letter.
-  if (module === 'VIGENERE') return Math.max(base, 2);
-  return base;
+/** Fixed balanced budget: two crypto hint tiers for every module. */
+export const MAX_CRYPTO_HINTS = 2;
+
+export function getMaxHints(_module?: CipherModule): number {
+  return MAX_CRYPTO_HINTS;
 }
 
 interface CaesarHintMessages {
@@ -115,7 +101,7 @@ export interface HintInput {
   language: Language;
   ciphertext: string;
   cipherParams: Record<string, unknown>;
-  /** 1-based tier, at most getMaxHints(difficulty). */
+  /** 1-based tier, at most getMaxHints(). */
   tier: number;
   /** Player's current cipher→plain guesses (FREQUENCY module only). */
   substitution?: Record<string, string>;

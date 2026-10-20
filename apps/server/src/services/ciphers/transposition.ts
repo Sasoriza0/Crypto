@@ -1,4 +1,3 @@
-import type { Difficulty } from '@shiftcrack/shared';
 import { randomIntInRange } from '../../lib/text.js';
 
 /**
@@ -35,53 +34,27 @@ export interface RouteParams {
   rows: number;
 }
 
-export interface RouteParamsRange {
-  cols: { min: number; max: number };
-  rows: { min: number; max: number };
-  routes: RouteKind[];
-}
-
 /** Both grid dimensions roll independently in 3–7 — any rectangle works. */
 const GRID_DIM_MIN = 3;
 const GRID_DIM_MAX = 7;
 
 /**
- * Difficulty scaling: the grid size is random (3–7 × 3–7) at every level —
- * difficulty escalates the ROUTE pool instead (snakes → + clockwise spiral
- * → + counterclockwise spiral).
+ * Legacy difficulty tiers are gone (story-fixed missions): the fill route
+ * is drawn from ONE fixed balanced pool — the two snakes plus the
+ * clockwise spiral. Counterclockwise spirals remain supported for
+ * decryption of legacy sessions, but are no longer generated.
  */
-export function getRouteParamsRange(difficulty: Difficulty): RouteParamsRange {
-  const dims = { min: GRID_DIM_MIN, max: GRID_DIM_MAX };
-  switch (difficulty) {
-    case 'EASY':
-      return {
-        cols: { ...dims },
-        rows: { ...dims },
-        routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE],
-      };
-    case 'MEDIUM':
-      return {
-        cols: { ...dims },
-        rows: { ...dims },
-        routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE, ROUTES.SPIRAL_CW],
-      };
-    case 'HARD':
-      return {
-        cols: { ...dims },
-        rows: { ...dims },
-        routes: [ROUTES.HORIZONTAL_SNAKE, ROUTES.VERTICAL_SNAKE, ROUTES.SPIRAL_CW, ROUTES.SPIRAL_CCW],
-      };
-    default:
-      throw new Error(`Unknown difficulty: ${String(difficulty)}`);
-  }
-}
+const GENERATED_ROUTES: readonly RouteKind[] = [
+  ROUTES.HORIZONTAL_SNAKE,
+  ROUTES.VERTICAL_SNAKE,
+  ROUTES.SPIRAL_CW,
+];
 
-export function generateRouteParams(difficulty: Difficulty): RouteParams {
-  const { cols, rows, routes } = getRouteParamsRange(difficulty);
+export function generateRouteParams(): RouteParams {
   return {
-    cols: randomIntInRange(cols.min, cols.max),
-    rows: randomIntInRange(rows.min, rows.max),
-    route: routes[randomIntInRange(0, routes.length - 1)]!,
+    cols: randomIntInRange(GRID_DIM_MIN, GRID_DIM_MAX),
+    rows: randomIntInRange(GRID_DIM_MIN, GRID_DIM_MAX),
+    route: GENERATED_ROUTES[randomIntInRange(0, GENERATED_ROUTES.length - 1)]!,
   };
 }
 

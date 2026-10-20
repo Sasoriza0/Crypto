@@ -52,7 +52,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="uk" suppressHydrationWarning className={lora.variable}>
       <body className="min-h-screen bg-page font-sans text-ink antialiased">
         <script dangerouslySetInnerHTML={{ __html: bootstrapScript }} />
-        <div className="min-h-screen px-4 py-3 md:px-8 md:py-6">
+        <div className="min-h-screen overflow-x-hidden px-4 py-3 md:px-8 md:py-6">
           <div className="mx-auto max-w-6xl border border-tan bg-paper shadow-[8px_8px_0_rgba(66,54,36,0.12)]">
             <Header />
             <SessionKeepAlive />

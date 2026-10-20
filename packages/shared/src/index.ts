@@ -401,4 +401,40 @@ export const modulesResponseSchema = z.object({
 });
 export type ModulesResponse = z.infer<typeof modulesResponseSchema>;
 
+// ---------------------------------------------------------------------------
+// Leaderboard contracts (SDD Phase 8: GET /leaderboards)
+// ---------------------------------------------------------------------------
+
+/**
+ * The Hall of Fame is competitive for the two long statistical missions
+ * only — FREQUENCY (substitution) and VIGENERE (Kasiski). The short
+ * story missions are training grounds and are never ranked.
+ */
+export const LeaderboardModule = {
+  FREQUENCY: 'FREQUENCY',
+  VIGENERE: 'VIGENERE',
+} as const;
+export type LeaderboardModule = (typeof LeaderboardModule)[keyof typeof LeaderboardModule];
+
+/** GET /leaderboards?module=FREQUENCY — validated at the API edge. */
+export const leaderboardQuerySchema = z.object({
+  module: z.nativeEnum(LeaderboardModule),
+});
+export type LeaderboardQuery = z.infer<typeof leaderboardQuerySchema>;
+
+export const leaderboardEntrySchema = z.object({
+  nickname: z.string(),
+  /** Solve time in milliseconds (solvedAt - startedAt). */
+  timeSpent: z.number().int().nonnegative(),
+  hintsUsed: z.number().int().nonnegative(),
+  solvedAt: z.iso.datetime(),
+});
+export type LeaderboardEntry = z.infer<typeof leaderboardEntrySchema>;
+
+/** GET /leaderboards — top entries, fewest hints first, then fastest solve. */
+export const leaderboardResponseSchema = z.object({
+  entries: z.array(leaderboardEntrySchema),
+});
+export type LeaderboardResponse = z.infer<typeof leaderboardResponseSchema>;
+
 export * from './frequencies.js';

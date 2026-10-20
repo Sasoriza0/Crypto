@@ -1,32 +1,22 @@
-import type { Difficulty } from '@shiftcrack/shared';
 import { randomIntInRange } from '../../lib/text.js';
 
 /**
  * Caesar (shift) cipher over a custom alphabet (language-aware).
- * Difficulty ranges per SDD §4: EASY 1–3, MEDIUM 4–15, HARD 1..len-1.
+ *
+ * Legacy difficulty tiers are gone (story-fixed missions): every challenge
+ * uses ONE balanced shift range of 4–15. Shifts of 1–3 were too trivial to
+ * rotate by eye and brute-forcing in seconds; the fixed window keeps the
+ * wheel genuinely useful while staying clamped to the alphabet size.
  */
 
-export interface ShiftRange {
-  min: number;
-  max: number;
-}
+export const CAESAR_SHIFT_MIN = 4;
+export const CAESAR_SHIFT_MAX = 15;
 
-export function getCaesarShiftRange(difficulty: Difficulty, alphabetLength: number): ShiftRange {
-  switch (difficulty) {
-    case 'EASY':
-      return { min: 1, max: Math.min(3, alphabetLength - 1) };
-    case 'MEDIUM':
-      return { min: 4, max: Math.min(15, alphabetLength - 1) };
-    case 'HARD':
-      return { min: 1, max: alphabetLength - 1 };
-    default:
-      throw new Error(`Unknown difficulty: ${String(difficulty)}`);
-  }
-}
-
-export function generateCaesarShift(difficulty: Difficulty, alphabetLength: number): number {
-  const { min, max } = getCaesarShiftRange(difficulty, alphabetLength);
-  return randomIntInRange(min, max);
+/** Random shift in the fixed balanced range, clamped to the alphabet. */
+export function generateCaesarShift(alphabetLength: number): number {
+  const min = Math.min(CAESAR_SHIFT_MIN, Math.max(1, alphabetLength - 1));
+  const max = Math.min(CAESAR_SHIFT_MAX, Math.max(1, alphabetLength - 1));
+  return randomIntInRange(Math.min(min, max), max);
 }
 
 function shiftChar(ch: string, shift: number, alphabet: string): string {

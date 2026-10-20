@@ -84,13 +84,13 @@ function textLengthOf(session: GameSession): number {
   return session.ciphertext.length;
 }
 
-/** Crypto hint tiers per difficulty plus one context slot on MEDIUM. */
+/** Crypto hint tiers plus one context slot on MEDIUM-difficulty sessions. */
 function totalHintBudget(difficulty: Difficulty, module: CipherModule): number {
-  return getMaxHints(difficulty, module) + (difficulty === 'MEDIUM' ? 1 : 0);
+  return getMaxHints(module) + (difficulty === 'MEDIUM' ? 1 : 0);
 }
 
 function toPublicSession(session: GameSession): PublicGameSession {
-  const maxHints = getMaxHints(session.difficulty, session.module);
+  const maxHints = getMaxHints(session.module);
   const chimera =
     session.module === 'CHIMERA'
       ? (() => {
@@ -137,7 +137,11 @@ function toPublicSession(session: GameSession): PublicGameSession {
 }
 
 export async function createGameSession(userId: string, input: CreateGameSessionInput): Promise<PublicGameSession> {
-  const challenge = generateChallenge(input);
+  // Challenge generation is difficulty-agnostic (story-fixed missions):
+  // the cipher params follow one balanced profile per module. The session
+  // row still records the requested difficulty for mission flavor and the
+  // lockout/context-hint rules.
+  const challenge = generateChallenge({ module: input.module, language: input.language });
   const session = await prisma.gameSession.create({
     data: {
       userId,
@@ -360,7 +364,7 @@ export async function requestHint(
   assertActive(session);
   await touchGameSession(session);
 
-  const maxHints = getMaxHints(session.difficulty, session.module);
+  const maxHints = getMaxHints(session.module);
   const isContext = kind === 'context';
 
   if (isContext) {
@@ -371,8 +375,9 @@ export async function requestHint(
     }
   }
 
-  // Total budget: crypto hint tiers per difficulty plus one context slot on
-  // MEDIUM. The context spend does not advance the crypto tier.
+  // Total budget: the fixed crypto tiers plus one context slot on
+  // MEDIUM-difficulty sessions. The context spend does not advance the
+  // crypto tier.
   const cryptoHintsUsed = session.hintsUsed - (session.contextUsed ? 1 : 0);
   const tier = cryptoHintsUsed + 1;
   const totalBudget = totalHintBudget(session.difficulty, session.module);

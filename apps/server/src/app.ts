@@ -6,6 +6,7 @@ import { errorHandler } from './lib/errors.js';
 import { effectiveLimit } from './middleware/rateLimiters.js';
 import { authRouter } from './routes/auth.js';
 import { gameRouter } from './routes/game.js';
+import { leaderboardRouter } from './routes/leaderboards.js';
 import { sessionRouter } from './routes/session.js';
 
 /**
@@ -74,6 +75,7 @@ export function createApp() {
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/game', gameRouter);
   app.use('/api/v1/session', sessionRouter);
+  app.use('/api/v1/leaderboards', leaderboardRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not Found' } });

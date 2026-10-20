@@ -1,4 +1,4 @@
-import type { CipherModule, Difficulty, Language } from '@shiftcrack/shared';
+import type { CipherModule, Language } from '@shiftcrack/shared';
 import { getAlphabet, normalizeText, preparePlaintext, randomIntInRange, sha256Hex } from '../lib/text.js';
 import { caesarDecrypt, caesarEncrypt, generateCaesarShift } from './ciphers/caesar.js';
 import { generateChimeraChallenge } from './ciphers/chimera.js';
@@ -11,33 +11,27 @@ import * as enCorpus from './phrases/en.js';
 import * as ukCorpus from './phrases/uk.js';
 
 /**
- * Phrase service: picks a phrase for the requested module/difficulty/
- * language and produces the full challenge. The plaintext itself is never
- * persisted — only `plaintextHash` (sha256 of the normalized text), the
- * ciphertext and the cipher params (shift / route) that allow the server
- * to decrypt on demand.
+ * Phrase service: picks a phrase for the requested module/language and
+ * produces the full challenge. The plaintext itself is never persisted —
+ * only `plaintextHash` (sha256 of the normalized text), the ciphertext and
+ * the cipher params (shift / route / key) that allow the server to decrypt
+ * on demand.
  *
- * Phase 6: phrase length is tied to difficulty for CAESAR, so the letter
- * statistics behave like real cryptanalysis material — EASY long (>100
- * chars, clean stats), MEDIUM short (40–60, noisy), HARD very short
- * (20–30, solid stream). Each phrase also carries a thematic `context`
- * (e.g. "Військовий наказ") which is metadata, not plaintext — it may be
- * stored and hinted.
- *
- * Exceptions:
+ * Story-fixed missions (legacy EASY/MEDIUM/HARD scaling removed):
+ * - CAESAR draws from the balanced 40–60 char pool — long enough for real
+ *   letter statistics, short enough for the wheel;
+ * - FREQUENCY always selects LONG texts (3–5 sentences, 120+ letters):
+ *   substitution cracking needs a large statistical sample;
+ * - VIGENERE also uses the long-text pool (the Kasiski attack needs
+ *   enough material for repeated n-grams to appear) and always keeps
+ *   spaces between words, so the ciphertext reads like a real intercepted
+ *   message;
  * - TRANSPOSITION uses INVERTED grid generation: the dimensions are rolled
  *   first (random 3–7 columns × random 3–7 rows), then the text is fit to
  *   the cols×rows grid — longer phrases are truncated, shorter ones are
  *   padded with traditional dummy letters («х»/«о» for Cyrillic, «x» for
  *   Latin). The phrase pool prefers texts near the target length so the
  *   truncation/padding stays minimal.
- * - FREQUENCY always selects LONG texts (3–5 sentences, 120+ letters):
- *   substitution cracking needs a large statistical sample, and a short
- *   text is effectively unsolvable by frequency counting.
- * - VIGENERE also uses the long-text pool (the Kasiski attack needs
- *   enough material for repeated n-grams to appear) and always keeps
- *   spaces between words (MEDIUM-style preparation at every difficulty),
- *   so the ciphertext reads like a real intercepted message.
  */
 
 export interface GeneratedChallenge {
@@ -53,7 +47,10 @@ export interface GeneratedChallenge {
 /** FREQUENCY/VIGENERE need 3–5 sentences of statistics — 120+ letters minimum. */
 const FREQUENCY_MIN_LETTERS = 120;
 
-function getCorpus(language: Language, difficulty: Difficulty, module: CipherModule): CorpusPhrase[] {
+/** CAESAR: the balanced story pool (40–60 raw chars). */
+const CAESAR_DIFFICULTY = 'MEDIUM' as const;
+
+function getCorpus(language: Language, module: CipherModule): CorpusPhrase[] {
   const corpus = language === 'uk' ? ukCorpus : enCorpus;
   const alphabet = getAlphabet(language);
   if (module === 'FREQUENCY' || module === 'VIGENERE') {
@@ -61,12 +58,15 @@ function getCorpus(language: Language, difficulty: Difficulty, module: CipherMod
       (phrase) => normalizeText(phrase.text, alphabet).length >= FREQUENCY_MIN_LETTERS,
     );
   }
-  return corpus.phrases.filter((phrase) => phrase.difficulty === difficulty);
+  if (module === 'CAESAR') {
+    return corpus.phrases.filter((phrase) => phrase.difficulty === CAESAR_DIFFICULTY);
+  }
+  return corpus.phrases;
 }
 
 function pickPhrase(corpus: CorpusPhrase[]): CorpusPhrase {
   if (corpus.length === 0) {
-    throw new Error('Corpus pool is empty for the requested module/difficulty');
+    throw new Error('Corpus pool is empty for the requested module');
   }
   return corpus[randomIntInRange(0, corpus.length - 1)]!;
 }
@@ -108,7 +108,7 @@ function fitToGrid(text: string, targetLength: number, language: Language): { gr
  */
 function pickTranspositionPhrase(corpus: CorpusPhrase[], alphabet: string, targetLength: number): CorpusPhrase {
   if (corpus.length === 0) {
-    throw new Error('Corpus pool is empty for the requested module/difficulty');
+    throw new Error('Corpus pool is empty for the requested module');
   }
   const withLength = corpus.map((phrase) => ({
     phrase,
@@ -132,12 +132,8 @@ function pickTranspositionPhrase(corpus: CorpusPhrase[], alphabet: string, targe
  * real content, so the answer hash and the client candidate never include
  * the dummies.
  */
-function generateTranspositionChallenge(
-  language: Language,
-  difficulty: Difficulty,
-  alphabet: string,
-): GeneratedChallenge {
-  const params = generateRouteParams(difficulty);
+function generateTranspositionChallenge(language: Language, alphabet: string): GeneratedChallenge {
+  const params = generateRouteParams();
   const targetLength = params.cols * params.rows;
   const corpus = language === 'uk' ? ukCorpus.phrases : enCorpus.phrases;
   const phrase = pickTranspositionPhrase(corpus, alphabet, targetLength);
@@ -159,11 +155,7 @@ function generateTranspositionChallenge(
   };
 }
 
-export function generateChallenge(input: {
-  module: CipherModule;
-  difficulty: Difficulty;
-  language: Language;
-}): GeneratedChallenge {
+export function generateChallenge(input: { module: CipherModule; language: Language }): GeneratedChallenge {
   // CHIMERA (Mission 05) is a three-phase composite challenge with no
   // corpus phrase: the "plaintext" is the target JSON assembled from the
   // MitM / AES-ECB / JWT phases (see ciphers/chimera.ts).
@@ -173,23 +165,16 @@ export function generateChallenge(input: {
 
   const alphabet = getAlphabet(input.language);
   if (input.module === 'TRANSPOSITION') {
-    return generateTranspositionChallenge(input.language, input.difficulty, alphabet);
+    return generateTranspositionChallenge(input.language, alphabet);
   }
 
-  const phrase = pickPhrase(getCorpus(input.language, input.difficulty, input.module));
+  const phrase = pickPhrase(getCorpus(input.language, input.module));
   const plaintext = phrase.text;
-  // Difficulty scaling: what gets encrypted is decided by the chosen level
-  // (EASY keeps word structure, MEDIUM strips punctuation, HARD is a solid
-  // letter stream) — with two exceptions: FREQUENCY keeps word structure at
-  // HARD (its mission is fixed there) and VIGENERE keeps it at EVERY
-  // difficulty (the Kasiski distances are measured over the letter stream,
-  // but the ciphertext must still read as a real intercepted message). The
-  // hash always covers the letters-only stream, so the answer check accepts
-  // both "with spaces" and "solid" player input.
-  const prepared =
-    (input.module === 'FREQUENCY' && input.difficulty === 'HARD') || input.module === 'VIGENERE'
-      ? preparePlaintext(plaintext, alphabet, 'MEDIUM')
-      : preparePlaintext(plaintext, alphabet, input.difficulty);
+  // Fixed balanced preparation: punctuation stripped, spaces kept — the
+  // ciphertext reads like a real intercepted message for every module.
+  // The hash always covers the letters-only stream, so the answer check
+  // accepts both "with spaces" and "solid" player input.
+  const prepared = preparePlaintext(plaintext, alphabet);
   const plaintextHash = sha256Hex(normalizeText(prepared, alphabet));
 
   let ciphertext: string;
@@ -197,7 +182,7 @@ export function generateChallenge(input: {
 
   switch (input.module) {
     case 'CAESAR': {
-      const shift = generateCaesarShift(input.difficulty, alphabet.length);
+      const shift = generateCaesarShift(alphabet.length);
       ciphertext = caesarEncrypt(prepared, shift, alphabet);
       cipherParams = { shift };
       break;
@@ -209,7 +194,7 @@ export function generateChallenge(input: {
       break;
     }
     case 'VIGENERE': {
-      const key = generateVigenereKey(input.language, input.difficulty);
+      const key = generateVigenereKey(input.language);
       ciphertext = vigenereEncrypt(prepared, key, alphabet);
       cipherParams = { key };
       break;

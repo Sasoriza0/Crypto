@@ -16,7 +16,17 @@ export function validate<T>(schema: ZodType<T>, source: Source = 'body'): Reques
       next(validation('Invalid request payload', result.error.flatten()));
       return;
     }
-    (req as unknown as Record<string, unknown>)[source] = result.data;
+    // Express 5 exposes `req.query` (and other segments) as getter-only
+    // accessors on the Request prototype, so plain assignment throws
+    // ("Cannot set property ... which has only a getter"). Define an own
+    // property instead: it shadows the accessor for this request with the
+    // parsed value and keeps the replacement for downstream handlers.
+    Object.defineProperty(req, source, {
+      value: result.data,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     next();
   };
 }

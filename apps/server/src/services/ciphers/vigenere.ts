@@ -1,4 +1,4 @@
-import type { Difficulty, Language } from '@shiftcrack/shared';
+import type { Language } from '@shiftcrack/shared';
 import { getAlphabet, randomIntInRange } from '../../lib/text.js';
 
 /**
@@ -8,33 +8,19 @@ import { getAlphabet, randomIntInRange } from '../../lib/text.js';
  * do NOT advance the key position — so the ciphertext keeps the word
  * structure of the prepared plaintext.
  *
- * Key length ranges per difficulty (SDD Phase 6 extension):
- * EASY 3–4, MEDIUM 5–6, HARD 7–9 — longer keys hide the Kasiski period.
+ * Legacy difficulty tiers are gone (story-fixed missions): the key is
+ * always 5–6 letters. Shorter keys collapse the Kasiski period search into
+ * a guessing game, longer keys need more statistical material than the
+ * mission corpus provides.
  */
 
-export interface VigenereKeyRange {
-  min: number;
-  max: number;
-}
+export const VIGENERE_KEY_MIN = 5;
+export const VIGENERE_KEY_MAX = 6;
 
-export function getVigenereKeyRange(difficulty: Difficulty): VigenereKeyRange {
-  switch (difficulty) {
-    case 'EASY':
-      return { min: 3, max: 4 };
-    case 'MEDIUM':
-      return { min: 5, max: 6 };
-    case 'HARD':
-      return { min: 7, max: 9 };
-    default:
-      throw new Error(`Unknown difficulty: ${String(difficulty)}`);
-  }
-}
-
-/** Random key word made of alphabet letters (length per difficulty). */
-export function generateVigenereKey(language: Language, difficulty: Difficulty): string {
+/** Random key word made of alphabet letters (fixed balanced 5–6 length). */
+export function generateVigenereKey(language: Language): string {
   const alphabet = getAlphabet(language);
-  const { min, max } = getVigenereKeyRange(difficulty);
-  const length = randomIntInRange(min, max);
+  const length = randomIntInRange(VIGENERE_KEY_MIN, VIGENERE_KEY_MAX);
   let key = '';
   for (let i = 0; i < length; i++) {
     key += alphabet[randomIntInRange(0, alphabet.length - 1)];

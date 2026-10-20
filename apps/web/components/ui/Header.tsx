@@ -89,6 +89,16 @@ export function Header() {
     <>
       <button
         type="button"
+        onClick={() => router.push('/leaderboards')}
+        disabled={inGame}
+        className={`${controlClass} disabled:cursor-not-allowed`}
+        title={inGame ? t('auth.locked') : t('nav.leaderboards')}
+      >
+        {t('nav.leaderboards')}
+      </button>
+
+      <button
+        type="button"
         onClick={() => setLocale(locale === 'uk' ? 'en' : 'uk')}
         disabled={inGame}
         className={`${controlClass} disabled:cursor-not-allowed`}
@@ -105,13 +115,21 @@ export function Header() {
 
       {status === 'anonymous' && (
         <>
-          <button type="button" onClick={() => setAuthOpen(true)} className={controlClass}>
+          <button
+            type="button"
+            onClick={() => setAuthOpen(true)}
+            disabled={inGame}
+            className={`${controlClass} disabled:cursor-not-allowed`}
+            title={inGame ? t('auth.locked') : t('auth.signIn')}
+          >
             {t('auth.signIn')}
           </button>
           <button
             type="button"
             onClick={() => void playAnonymously()}
-            className="border-2 border-ink bg-ink px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-paper transition hover:border-red-700 hover:bg-red-700"
+            disabled={inGame}
+            title={inGame ? t('auth.locked') : t('auth.anonymous')}
+            className="border-2 border-ink bg-ink px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-paper transition hover:border-red-700 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('auth.anonymous')}
           </button>
@@ -123,7 +141,13 @@ export function Header() {
           <span className="max-w-40 truncate font-mono text-xs uppercase tracking-widest text-fade">
             {user?.nickname ?? user?.email ?? t('auth.anonymousPlayer')}
           </span>
-          <button type="button" onClick={() => void logout()} className={controlClass}>
+          <button
+            type="button"
+            onClick={() => void logout()}
+            disabled={inGame}
+            className={`${controlClass} disabled:cursor-not-allowed`}
+            title={inGame ? t('auth.locked') : t('auth.logout')}
+          >
             {t('auth.logout')}
           </button>
         </div>
@@ -156,8 +180,10 @@ export function Header() {
   return (
     <header className="relative border-b-2 border-ink px-4 py-4 text-center md:px-8 md:py-6">
       {/* Absolute stamp: its width (locale-dependent text) never affects
-          the header flow, so switching languages cannot shift the layout. */}
-      <div className="pointer-events-none absolute right-2 top-2 rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700 sm:-right-8 sm:-top-6 md:-right-12">
+          the header flow, so switching languages cannot shift the layout.
+          Pinned inside the corner (no negative offsets) so the rotated
+          sticker never overhangs the frame and clips at the viewport. */}
+      <div className="pointer-events-none absolute right-1 top-1 rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700 sm:right-2 sm:top-2">
         {t('header.topSecret')}
       </div>
 
