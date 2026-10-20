@@ -47,7 +47,7 @@ export function FrequencyPanel({
         <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('game.ciphertext')}
         </h2>
-        <div className="mt-1 border border-tan bg-inset p-3 shadow-inner">
+        <div className="mt-1 max-h-48 overflow-y-auto border border-tan bg-inset p-3 text-sm leading-tight shadow-inner md:max-h-none md:overflow-visible md:p-5 md:text-base md:leading-normal">
           <CiphertextText ciphertext={ciphertext} language={language} />
         </div>
 
@@ -68,9 +68,11 @@ export function FrequencyPanel({
       </div>
 
       <div className="mt-3 grid items-start gap-4 lg:grid-cols-2">
-        <SubstitutionMap ciphertext={ciphertext} language={language} />
+        <div className="min-w-0">
+          <SubstitutionMap ciphertext={ciphertext} language={language} />
+        </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <div>
             <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
               {t('game.candidate')}

@@ -105,11 +105,11 @@ export function CaesarPanel({
       )}
 
       <div className="mt-3 grid items-start gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-2 border border-tan bg-card p-3">
+        <div className="flex min-w-0 flex-col gap-2 border border-tan bg-card p-3">
           <AlbertiDisks alphabet={alphabet} shift={shift} onShiftChange={setShift} />
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <div>
             <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
               {t('game.candidate')}

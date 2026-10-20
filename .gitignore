@@ -35,3 +35,6 @@ Thumbs.db
 
 # Design references
 _v0_design_reference/
+.aider*
+
+docs/

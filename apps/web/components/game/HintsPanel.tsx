@@ -38,13 +38,13 @@ export function HintsPanel() {
   };
 
   return (
-    <div className="mt-4 border border-tan bg-inset p-4">
+    <div className="mt-4 border border-tan bg-inset p-3 md:p-4">
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => void onRequest()}
           disabled={cryptoExhausted || busy}
-          className="border border-ink px-3 py-1 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full border border-ink px-3 py-2 font-mono text-xs uppercase tracking-widest text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50 md:w-auto md:py-1"
         >
           {t('game.hint.request')}
         </button>
@@ -53,7 +53,7 @@ export function HintsPanel() {
             type="button"
             onClick={() => void onRequest('context')}
             disabled={busy}
-            className="border border-red-700 px-3 py-1 font-mono text-xs uppercase tracking-widest text-red-700 transition hover:bg-red-700 hover:text-paper disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full border border-red-700 px-3 py-2 font-mono text-xs uppercase tracking-widest text-red-700 transition hover:bg-red-700 hover:text-paper disabled:cursor-not-allowed disabled:opacity-50 md:w-auto md:py-1"
           >
             {t('game.hint.context')}
           </button>

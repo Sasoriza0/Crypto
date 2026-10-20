@@ -42,10 +42,10 @@ export default function HomePage() {
   };
 
   return (
-    <section className="mx-auto max-w-5xl">
-      <div className="mb-8 text-center">
+    <section className="mx-auto max-w-6xl">
+      <div className="mb-6 text-center md:mb-8">
         <MetaLabel>{t('menu.file')}</MetaLabel>
-        <h2 className="mt-3 font-serif text-4xl font-bold leading-none sm:text-6xl">
+        <h2 className="mt-3 font-serif text-3xl font-bold leading-none sm:text-5xl md:text-6xl">
           {t('menu.select')} <span className="text-red-700">{t('menu.selectAccent')}</span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl font-mono text-xs leading-6 text-fade-dark sm:text-sm">
@@ -54,7 +54,7 @@ export default function HomePage() {
         {error && <p className="mt-4 font-mono text-xs text-red-700">{error}</p>}
       </div>
 
-      <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
         {MISSIONS.map((mission) => {
           const busy = busySlug === mission.slug;
           return (
@@ -73,7 +73,7 @@ export default function HomePage() {
 
               <div className="flex-1 pt-6">
                 <MetaLabel>{t(`menu.subtitle.${mission.slug}`)}</MetaLabel>
-                <h3 className="mt-2 font-serif text-2xl font-bold leading-tight">
+                <h3 className="mt-2 font-serif text-xl font-bold leading-tight md:text-2xl">
                   {t(`modules.${mission.slug}.name`)}
                 </h3>
                 <p className="mt-3 font-mono text-xs leading-5 text-fade-dark">

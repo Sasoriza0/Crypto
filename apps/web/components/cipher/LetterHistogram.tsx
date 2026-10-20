@@ -49,11 +49,11 @@ export function LetterHistogram({ title, alphabet, values, counts, scaleMax, acc
   const barClass = ACCENTS[accent];
 
   return (
-    <div className="border border-tan bg-card">
+    <div className="w-full min-w-0 border border-tan bg-card">
       <h3 className="border-b border-tan px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
         {title}
       </h3>
-      <div className="overflow-x-auto p-3">
+      <div className="w-full overflow-x-auto overflow-y-hidden p-3">
         <div className="mx-auto" style={{ width: letters.length * COL_WIDTH }}>
           <div className="flex h-24 items-end">
             {letters.map((letter) => {

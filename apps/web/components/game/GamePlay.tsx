@@ -46,8 +46,8 @@ export function GamePlay({ module }: { module: CipherModule }) {
   if (!session) return null;
 
   return (
-    <div className="mt-1">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-tan pb-3">
+    <div className="mt-1 w-full p-3 md:p-6">
+      <div className="flex flex-col gap-2 border-b border-tan pb-3 md:flex-row md:items-center md:justify-between">
         <StatusBar />
         <HowToPlay module={module} />
       </div>

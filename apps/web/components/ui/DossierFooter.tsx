@@ -7,7 +7,7 @@ export function DossierFooter() {
   const t = useT();
 
   return (
-    <footer className="flex flex-col gap-2 border-t border-tan px-6 py-4 font-mono text-[10px] uppercase tracking-[0.18em] text-fade sm:flex-row sm:items-center sm:justify-between">
+    <footer className="flex flex-col gap-2 border-t border-tan px-4 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-fade sm:flex-row sm:items-center sm:justify-between md:px-8">
       <span>“{t('menu.quote')}”</span>
       <span className="font-bold tracking-widest text-red-700">{t('menu.manual')}</span>
     </footer>

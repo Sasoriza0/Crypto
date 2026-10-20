@@ -214,7 +214,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
     <>
       <div
         ref={containerRef}
-        className="flex flex-wrap select-none gap-x-8 gap-y-1 font-mono outline-none"
+        className="flex flex-wrap select-none gap-x-8 gap-y-0.5 font-mono outline-none md:gap-y-1"
         tabIndex={0}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
@@ -234,7 +234,7 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                   <span
                     key={idx}
                     data-idx={idx}
-                    className="flex h-14 w-6 shrink-0 items-center justify-center text-lg text-fade"
+                    className="flex h-10 w-6 shrink-0 items-center justify-center text-sm text-fade md:h-14 md:text-lg"
                   >
                     {ch}
                   </span>
@@ -262,18 +262,18 @@ export function CiphertextText({ ciphertext, language }: CiphertextTextProps) {
                 <span
                   key={idx}
                   data-idx={idx}
-                  className={`flex h-14 w-8 shrink-0 cursor-pointer flex-col items-center justify-center leading-none ${cellClass} ${
+                  className={`flex h-10 w-8 shrink-0 cursor-pointer flex-col items-center justify-center leading-none md:h-14 ${cellClass} ${
                     selected === idx ? 'ring-2 ring-red-700' : ''
                   }`}
                 >
                   <span
-                    className={`text-xl font-semibold ${
+                    className={`text-base font-semibold md:text-xl ${
                       conflict ? 'text-red-600 underline decoration-dotted dark:text-red-400' : plainClass
                     }`}
                   >
                     {entry ? entry.plain : '\u00A0'}
                   </span>
-                  <span className="text-base text-fade">{ch}</span>
+                  <span className="text-sm text-fade md:text-base">{ch}</span>
                 </span>
               );
             })}

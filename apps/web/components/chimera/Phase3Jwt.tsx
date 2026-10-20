@@ -127,18 +127,18 @@ export function Phase3Jwt() {
         <button
           type="button"
           onClick={onFillRewards}
-          className="border border-ink px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-ink transition hover:bg-inset"
+          className="w-full border border-ink px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-ink transition hover:bg-inset md:w-auto"
         >
           {t('chimera.phase3.fillRewards')}
         </button>
       </div>
 
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 flex w-full flex-col gap-4">
         <label className="block">
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
             {t('chimera.phase3.header')}
           </span>
-          <code className="mt-1 block break-all border border-tan bg-inset px-2 py-1.5 font-mono text-xs text-fade-dark">
+          <code className="mt-1 block w-full overflow-x-auto break-all border border-tan bg-inset px-2 py-1.5 font-mono text-xs text-fade-dark">
             {JWT_HEADER}
           </code>
         </label>
@@ -184,7 +184,7 @@ export function Phase3Jwt() {
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
             {t('chimera.phase3.composed')}
           </p>
-          <p className="mt-1 whitespace-pre-wrap break-words border border-dashed border-red-700 bg-inset p-2 font-mono text-xs">
+          <p className="mt-1 w-full overflow-x-auto whitespace-pre-wrap break-words border border-dashed border-red-700 bg-inset p-2 font-mono text-xs">
             {composed}
           </p>
         </div>
@@ -215,7 +215,7 @@ export function Phase3Jwt() {
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-emerald-700">
             {t('chimera.phase3.accepted')}
           </p>
-          <code className="mt-2 block break-all border border-tan bg-inset px-2 py-1.5 font-mono text-xs">
+          <code className="mt-2 block w-full overflow-x-auto break-all border border-tan bg-inset px-2 py-1.5 font-mono text-xs">
             {generatedToken}
           </code>
           <p className="mt-2 font-serif text-sm text-fade-dark">{t('chimera.phase3.finalHint')}</p>

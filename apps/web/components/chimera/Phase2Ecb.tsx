@@ -51,7 +51,7 @@ export function Phase2Ecb() {
         <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('chimera.phase2.original')}
         </h3>
-        <p className="mt-1 whitespace-pre-wrap break-words border border-ink bg-inset p-3 font-mono text-sm">
+        <p className="mt-1 w-full overflow-x-auto overflow-y-hidden whitespace-pre-wrap break-words border border-ink bg-inset p-3 font-mono text-sm">
           {meta.originalJson}
         </p>
       </div>
@@ -60,11 +60,11 @@ export function Phase2Ecb() {
         <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
           {t('chimera.phase2.blocks')}
         </h3>
-        <ol className="mt-1 flex flex-wrap gap-2">
+        <ol className="mt-1 flex w-full flex-nowrap gap-2 overflow-x-auto overflow-y-hidden md:flex-wrap">
           {meta.aesBlocks.map((block, index) => (
             <li
               key={`${block}-${index}`}
-              className="border border-tan bg-inset px-2 py-1 font-mono text-[10px] leading-4 text-fade-dark"
+              className="whitespace-nowrap border border-tan bg-inset px-2 py-1 font-mono text-[10px] leading-4 text-fade-dark"
             >
               <span className="mr-1 font-bold text-red-700">{index}</span>
               {block}
@@ -73,7 +73,7 @@ export function Phase2Ecb() {
         </ol>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-tan pt-4">
+      <div className="mt-4 flex w-full flex-col gap-3 border-t border-tan pt-4 md:flex-row md:items-end">
         <label className="block">
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-fade">
             {t('chimera.phase2.from')}
@@ -106,7 +106,7 @@ export function Phase2Ecb() {
           type="button"
           onClick={() => void onApply()}
           disabled={busy || chimeraForgedJson !== null}
-          className="border-2 border-ink bg-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-paper transition hover:border-red-700 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full border-2 border-ink bg-ink px-4 py-2 font-mono text-xs font-bold uppercase tracking-[0.16em] text-paper transition hover:border-red-700 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
         >
           {t('chimera.phase2.apply')}
         </button>

@@ -66,12 +66,12 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-sm rounded-none border-2 border-stone-800 bg-paper p-6 shadow-[4px_4px_0px_0px_rgba(41,37,36,1)]"
+        className="relative mx-auto w-[95%] rounded-none border-2 border-stone-800 bg-paper p-4 shadow-[4px_4px_0px_0px_rgba(41,37,36,1)] md:max-w-md md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <span
           aria-hidden
-          className="absolute -top-3 right-4 rotate-[2deg] border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700"
+          className="absolute -top-2 right-1 origin-top-right rotate-[2deg] scale-75 border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 md:-right-4 md:-top-4 md:scale-100"
         >
           {t('auth.dialog.stamp')}
         </span>
@@ -109,7 +109,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-2 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0"
+              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-3 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0 md:py-2"
             />
           </div>
 
@@ -128,7 +128,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
               required
               minLength={mode === 'register' ? 8 : 1}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-2 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0"
+              className="mt-1 w-full rounded-none border border-stone-500 bg-transparent px-3 py-3 font-mono text-stone-900 focus:border-stone-800 focus:outline-none focus:ring-0 md:py-2"
             />
           </div>
 
@@ -137,7 +137,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
           <button
             type="submit"
             disabled={busy}
-            className="w-full cursor-pointer rounded-none border border-stone-900 bg-stone-800 px-4 py-2 font-mono text-sm uppercase tracking-wider text-stone-100 transition-colors hover:border-red-700 hover:bg-red-700 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full cursor-pointer rounded-none border border-stone-900 bg-stone-800 px-4 py-3 font-mono text-sm uppercase tracking-wider text-stone-100 transition-colors hover:border-red-700 hover:bg-red-700 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 md:py-2"
           >
             {busy ? '…' : mode === 'login' ? t('auth.submit.login') : t('auth.submit.register')}
           </button>

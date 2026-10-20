@@ -133,7 +133,7 @@ export function Header() {
 
   if (!isHome) {
     return (
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-4 py-2 sm:px-6">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-ink px-4 py-3 md:px-8">
         <button
           type="button"
           onClick={onBackToMenu}
@@ -154,18 +154,18 @@ export function Header() {
   }
 
   return (
-    <header className="relative border-b-2 border-ink px-6 py-8 text-center sm:px-10">
+    <header className="relative border-b-2 border-ink px-4 py-4 text-center md:px-8 md:py-6">
       {/* Absolute stamp: its width (locale-dependent text) never affects
           the header flow, so switching languages cannot shift the layout. */}
-      <div className="pointer-events-none absolute right-8 top-4 rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700">
+      <div className="pointer-events-none absolute right-2 top-2 rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700 sm:-right-8 sm:-top-6 md:-right-12">
         {t('header.topSecret')}
       </div>
 
       <MetaLabel>{t('header.meta')}</MetaLabel>
-      <h1 className="mt-3 font-serif text-5xl font-bold uppercase leading-none tracking-tight sm:text-6xl">
+      <h1 className="mt-3 font-serif text-4xl font-bold uppercase leading-none tracking-tight sm:text-5xl md:text-6xl">
         {t('app.title')}
       </h1>
-      <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.2em] text-fade">
+      <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-fade md:text-[11px]">
         {t('header.tagline')}
       </p>
 

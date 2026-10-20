@@ -50,7 +50,7 @@ export function ModuleScreen({ slug }: { slug: string }) {
   }, [session?.id, session]);
 
   return (
-    <section className="mx-auto max-w-5xl">
+    <section className="mx-auto w-full max-w-5xl">
       {!module ? (
         <h1 className="mt-4 font-serif text-3xl font-bold">{t('module.notFound')}</h1>
       ) : (

@@ -17,7 +17,7 @@ export function StatusBar() {
   if (!session) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-widest text-fade">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-sm uppercase tracking-widest text-fade md:text-base">
       <span>
         {t('game.attempts')}: <strong className="text-ink">{session.attempts}</strong>
       </span>

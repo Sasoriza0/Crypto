@@ -37,7 +37,7 @@ export function HowToPlay({ module }: { module: CipherModule }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="border border-tan px-2 py-1 font-mono text-sm text-fade transition hover:bg-inset hover:text-ink"
+        className="w-full border border-tan px-3 py-2 font-mono text-sm text-fade transition hover:bg-inset hover:text-ink md:w-auto md:py-1"
       >
         ? {t('howto.button')}
       </button>

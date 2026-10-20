@@ -183,9 +183,12 @@ export function Phase1MitM() {
             <p className={`${TERMINAL_LINE} font-bold uppercase tracking-[0.2em] text-red-700`}>
               {t('chimera.phase1.sniff.title')}
             </p>
-            <div className="mt-2 h-44 overflow-y-auto border border-stone-800 bg-paper p-2">
+            <div className="mt-2 h-44 w-full overflow-x-auto overflow-y-auto border border-stone-800 bg-paper p-2">
               {lines.map((line, index) => (
-                <p key={`${index}-${line}`} className={`${TERMINAL_LINE} break-all text-stone-700`}>
+                <p
+                  key={`${index}-${line}`}
+                  className={`${TERMINAL_LINE} whitespace-pre-wrap break-all text-stone-700`}
+                >
                   <span className="text-stone-400">▸ </span>
                   {line}
                 </p>
@@ -226,7 +229,7 @@ export function Phase1MitM() {
               <p className="mt-1 font-serif text-sm text-fade-dark">{t('chimera.phase1.proxyKeyHint')}</p>
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 flex w-full flex-col gap-4 md:flex-row">
               <PacketForge
                 label={t('chimera.phase1.packetFrom', { party: t('chimera.phase1.party.hq') })}
                 original={packetJson(hqPacket)}
@@ -274,7 +277,7 @@ export function Phase1MitM() {
             <p className={`${TERMINAL_LINE} font-bold uppercase tracking-[0.2em] text-emerald-700`}>
               {t('chimera.phase1.terminalSeized')}
             </p>
-            <div className="mt-2 border border-stone-800 bg-inset p-2">
+            <div className="mt-2 w-full overflow-x-auto border border-stone-800 bg-inset p-2">
               <p className={`${TERMINAL_LINE} break-all text-stone-700`}>
                 <span className="text-stone-400">▸ </span>
                 {t('chimera.phase1.terminalRoute', { key: proxyKey ?? '—' })}
@@ -336,7 +339,7 @@ function PacketForge({ label, original, value, feedback, busy, onChange, t }: Pa
   const borderClass = invalid ? 'border-red-700' : broken ? 'border-amber-700' : 'border-stone-800';
 
   return (
-    <div>
+    <div className="w-full">
       <p className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-stone-800">{label}</p>
       <pre className="mt-1 max-h-28 overflow-auto whitespace-pre-wrap break-words border border-stone-800 bg-inset p-2 font-mono text-[11px] leading-4 text-fade-dark">
         {original}
