@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import type { User } from '../generated/prisma/client.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { ApiError } from '../lib/errors.js';
@@ -35,7 +36,10 @@ export async function hashPassword(password: string, cost = bcryptCost()): Promi
  * `hashPassword` (bcryptCost() defaults to 12), or a compare against the
  * dummy would run measurably faster than one against a real password hash.
  */
-const DUMMY_HASH = '$2b$12$gxWjNA8XYACzxVrNAQp8gOB.Mx/BECNgf1FWDPpeaEker4BkNIWAS';
+const DUMMY_HASH = bcrypt.hashSync(
+  crypto.randomBytes(32).toString('base64'), 
+  bcryptCost() // або просто 12
+);
 
 /** Public projection: the password hash never leaves the service layer. */
 export function toPublicUser(user: User): { id: string; email: string | null; nickname: string | null; provider: string } {
