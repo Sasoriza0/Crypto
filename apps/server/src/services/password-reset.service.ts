@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { ApiError } from '../lib/errors.js';
+import { randomIntInRange } from '../lib/text.js';
 import { prisma } from '../prisma/client.js';
 import { hashPassword } from './auth.service.js';
 import { sendResetEmail } from './mail.service.js';
@@ -34,6 +35,13 @@ export function hashResetToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
+/** Random delay range (ms) that shadows the DB writes + mail send. */
+const UNKNOWN_EMAIL_DELAY_MS = [50, 100] as const;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /** The web client origin the reset link points at (the reset form page). */
 export function clientOrigin(): string {
   return process.env.CLIENT_ORIGIN ?? 'http://localhost:3000';
@@ -50,7 +58,16 @@ export function buildResetUrl(token: string): string {
  */
 export async function requestPasswordReset(email: string): Promise<void> {
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.passwordHash) return;
+
+  if (!user || !user.passwordHash) {
+    // Anti-enumeration (OWASP): unknown emails do the same work a real
+    // reset does — mint a CSPRNG token, digest it — plus a randomized
+    // delay shadowing the DB transaction and email send, so the two paths
+    // are indistinguishable by response time.
+    hashResetToken(generateResetToken());
+    await sleep(randomIntInRange(UNKNOWN_EMAIL_DELAY_MS[0], UNKNOWN_EMAIL_DELAY_MS[1]));
+    return;
+  }
 
   const token = generateResetToken();
   const ttlMs = resetTokenTtlMs();

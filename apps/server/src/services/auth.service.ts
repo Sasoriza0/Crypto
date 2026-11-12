@@ -31,8 +31,11 @@ export async function hashPassword(password: string, cost = bcryptCost()): Promi
 /**
  * Precomputed bcrypt hash used to equalize response time when the account
  * does not exist — otherwise login would leak account presence by timing.
+ * Cost 12 on purpose: it must match the real hashes produced by
+ * `hashPassword` (bcryptCost() defaults to 12), or a compare against the
+ * dummy would run measurably faster than one against a real password hash.
  */
-const DUMMY_HASH = '$2b$10$537A6ZIWY1AnP7wVBZZy4OAAaz6wc.RWn5lhukT3O2PYYJ.ordrF6';
+const DUMMY_HASH = '$2b$12$gxWjNA8XYACzxVrNAQp8gOB.Mx/BECNgf1FWDPpeaEker4BkNIWAS';
 
 /** Public projection: the password hash never leaves the service layer. */
 export function toPublicUser(user: User): { id: string; email: string | null; nickname: string | null; provider: string } {
