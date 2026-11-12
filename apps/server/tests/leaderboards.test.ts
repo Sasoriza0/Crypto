@@ -2,21 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { leaderboardQuerySchema, leaderboardResponseSchema } from '@shiftcrack/shared';
 import {
   LEADERBOARD_LIMIT,
-  buildLeaderboard,
   compareLeaderboardEntries,
   timeSpentMs,
-  type SolvedSessionRow,
 } from '../src/services/leaderboard.service.js';
 
 /**
  * Hall of Fame ranking (SDD Phase 8): fewest hints first, then fastest
- * solve; one entry per operator (their personal best); the board is cut to
- * LEADERBOARD_LIMIT rows. Pure pipeline tests — no database.
+ * solve, then the earliest solve timestamp as a stable tie-break. The
+ * database enforces one row per user × module and serves the board as an
+ * indexed top-N query; these pure helpers pin the ranking contract.
  */
-
-function row(nickname: string, hintsUsed: number, startedMs: number, solvedMs: number): SolvedSessionRow {
-  return { nickname, hintsUsed, startedAt: new Date(startedMs), solvedAt: new Date(solvedMs) };
-}
 
 describe('timeSpentMs', () => {
   it('computes the solve time in whole milliseconds', () => {
@@ -42,6 +37,12 @@ describe('compareLeaderboardEntries', () => {
     expect(compareLeaderboardEntries(fast, slow)).toBeLessThan(0);
   });
 
+  it('breaks identical hints+time ties by the earliest solve', () => {
+    const early = { nickname: 'a', hintsUsed: 1, timeSpent: 1_000, solvedAt: '2026-01-01T00:00:00.000Z' };
+    const late = { nickname: 'b', hintsUsed: 1, timeSpent: 1_000, solvedAt: '2026-01-02T00:00:00.000Z' };
+    expect(compareLeaderboardEntries(early, late)).toBeLessThan(0);
+  });
+
   it('returns 0 for identical entries', () => {
     const a = { nickname: 'a', hintsUsed: 1, timeSpent: 1_000, solvedAt: '2026-01-01T00:00:00.000Z' };
     const b = { nickname: 'a', hintsUsed: 1, timeSpent: 1_000, solvedAt: '2026-01-01T00:00:00.000Z' };
@@ -49,48 +50,9 @@ describe('compareLeaderboardEntries', () => {
   });
 });
 
-describe('buildLeaderboard', () => {
-  it('sorts by hints ascending, then by solve time ascending', () => {
-    const rows = [
-      row('zeta', 2, 0, 5_000),
-      row('alpha', 0, 0, 20_000), // 0 hints, slower
-      row('beta', 0, 0, 10_000), // 0 hints, faster
-      row('gamma', 1, 0, 1_000),
-    ];
-    const board = buildLeaderboard(rows);
-    expect(board.map((e) => e.nickname)).toEqual(['beta', 'alpha', 'gamma', 'zeta']);
-  });
-
-  it('keeps only the personal best per operator (fewest hints, then fastest)', () => {
-    const rows = [
-      row('operator', 1, 0, 10_000),
-      row('operator', 0, 0, 30_000), // best: 0 hints despite slower time
-      row('operator', 0, 0, 20_000), // best: 0 hints, faster
-    ];
-    const board = buildLeaderboard(rows);
-    expect(board).toHaveLength(1);
-    expect(board[0]!.nickname).toBe('operator');
-    expect(board[0]!.hintsUsed).toBe(0);
-    expect(board[0]!.timeSpent).toBe(20_000);
-  });
-
-  it('cuts the board to the limit', () => {
-    const rows = Array.from({ length: LEADERBOARD_LIMIT + 10 }, (_, i) => row(`op_${i}`, i, 0, 1_000));
-    expect(buildLeaderboard(rows)).toHaveLength(LEADERBOARD_LIMIT);
-  });
-
-  it('projects ISO timestamps and whole milliseconds', () => {
-    const board = buildLeaderboard([row('operator', 0, 1_000, 85_000)]);
-    expect(board[0]).toEqual({
-      nickname: 'operator',
-      timeSpent: 84_000,
-      hintsUsed: 0,
-      solvedAt: new Date(85_000).toISOString(),
-    });
-  });
-
-  it('returns an empty board for an empty row set', () => {
-    expect(buildLeaderboard([])).toEqual([]);
+describe('LEADERBOARD_LIMIT', () => {
+  it('keeps the board at the spec length', () => {
+    expect(LEADERBOARD_LIMIT).toBe(50);
   });
 });
 

@@ -193,6 +193,7 @@ export type UserWhereInput = {
   gameSessions?: Prisma.GameSessionListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
+  leaderboardEntries?: Prisma.LeaderboardListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -205,6 +206,7 @@ export type UserOrderByWithRelationInput = {
   gameSessions?: Prisma.GameSessionOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   passwordResetTokens?: Prisma.PasswordResetTokenOrderByRelationAggregateInput
+  leaderboardEntries?: Prisma.LeaderboardOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -220,6 +222,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gameSessions?: Prisma.GameSessionListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   passwordResetTokens?: Prisma.PasswordResetTokenListRelationFilter
+  leaderboardEntries?: Prisma.LeaderboardListRelationFilter
 }, "id" | "email" | "nickname">
 
 export type UserOrderByWithAggregationInput = {
@@ -256,6 +259,7 @@ export type UserCreateInput = {
   gameSessions?: Prisma.GameSessionCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -268,6 +272,7 @@ export type UserUncheckedCreateInput = {
   gameSessions?: Prisma.GameSessionUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -280,6 +285,7 @@ export type UserUpdateInput = {
   gameSessions?: Prisma.GameSessionUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -292,6 +298,7 @@ export type UserUncheckedUpdateInput = {
   gameSessions?: Prisma.GameSessionUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -407,6 +414,20 @@ export type UserUpdateOneRequiredWithoutGameSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGameSessionsInput, Prisma.UserUpdateWithoutGameSessionsInput>, Prisma.UserUncheckedUpdateWithoutGameSessionsInput>
 }
 
+export type UserCreateNestedOneWithoutLeaderboardEntriesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedCreateWithoutLeaderboardEntriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLeaderboardEntriesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutLeaderboardEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedCreateWithoutLeaderboardEntriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutLeaderboardEntriesInput
+  upsert?: Prisma.UserUpsertWithoutLeaderboardEntriesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutLeaderboardEntriesInput, Prisma.UserUpdateWithoutLeaderboardEntriesInput>, Prisma.UserUncheckedUpdateWithoutLeaderboardEntriesInput>
+}
+
 export type UserCreateWithoutPasswordResetTokensInput = {
   id?: string
   email?: string | null
@@ -416,6 +437,7 @@ export type UserCreateWithoutPasswordResetTokensInput = {
   createdAt?: Date | string
   gameSessions?: Prisma.GameSessionCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
@@ -427,6 +449,7 @@ export type UserUncheckedCreateWithoutPasswordResetTokensInput = {
   createdAt?: Date | string
   gameSessions?: Prisma.GameSessionUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPasswordResetTokensInput = {
@@ -454,6 +477,7 @@ export type UserUpdateWithoutPasswordResetTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gameSessions?: Prisma.GameSessionUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
@@ -465,6 +489,7 @@ export type UserUncheckedUpdateWithoutPasswordResetTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gameSessions?: Prisma.GameSessionUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -476,6 +501,7 @@ export type UserCreateWithoutSessionsInput = {
   createdAt?: Date | string
   gameSessions?: Prisma.GameSessionCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -487,6 +513,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   gameSessions?: Prisma.GameSessionUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -514,6 +541,7 @@ export type UserUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gameSessions?: Prisma.GameSessionUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -525,6 +553,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   gameSessions?: Prisma.GameSessionUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutGameSessionsInput = {
@@ -536,6 +565,7 @@ export type UserCreateWithoutGameSessionsInput = {
   createdAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutGameSessionsInput = {
@@ -547,6 +577,7 @@ export type UserUncheckedCreateWithoutGameSessionsInput = {
   createdAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutGameSessionsInput = {
@@ -574,6 +605,7 @@ export type UserUpdateWithoutGameSessionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGameSessionsInput = {
@@ -583,6 +615,71 @@ export type UserUncheckedUpdateWithoutGameSessionsInput = {
   passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  leaderboardEntries?: Prisma.LeaderboardUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutLeaderboardEntriesInput = {
+  id?: string
+  email?: string | null
+  nickname?: string | null
+  passwordHash?: string | null
+  provider?: string
+  createdAt?: Date | string
+  gameSessions?: Prisma.GameSessionCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutLeaderboardEntriesInput = {
+  id?: string
+  email?: string | null
+  nickname?: string | null
+  passwordHash?: string | null
+  provider?: string
+  createdAt?: Date | string
+  gameSessions?: Prisma.GameSessionUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutLeaderboardEntriesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedCreateWithoutLeaderboardEntriesInput>
+}
+
+export type UserUpsertWithoutLeaderboardEntriesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedUpdateWithoutLeaderboardEntriesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedCreateWithoutLeaderboardEntriesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutLeaderboardEntriesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutLeaderboardEntriesInput, Prisma.UserUncheckedUpdateWithoutLeaderboardEntriesInput>
+}
+
+export type UserUpdateWithoutLeaderboardEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  gameSessions?: Prisma.GameSessionUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  passwordResetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutLeaderboardEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  gameSessions?: Prisma.GameSessionUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   passwordResetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
 }
@@ -596,12 +693,14 @@ export type UserCountOutputType = {
   gameSessions: number
   sessions: number
   passwordResetTokens: number
+  leaderboardEntries: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   gameSessions?: boolean | UserCountOutputTypeCountGameSessionsArgs
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   passwordResetTokens?: boolean | UserCountOutputTypeCountPasswordResetTokensArgs
+  leaderboardEntries?: boolean | UserCountOutputTypeCountLeaderboardEntriesArgs
 }
 
 /**
@@ -635,6 +734,13 @@ export type UserCountOutputTypeCountPasswordResetTokensArgs<ExtArgs extends runt
   where?: Prisma.PasswordResetTokenWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountLeaderboardEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LeaderboardWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -646,6 +752,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   gameSessions?: boolean | Prisma.User$gameSessionsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
+  leaderboardEntries?: boolean | Prisma.User$leaderboardEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -681,6 +788,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   gameSessions?: boolean | Prisma.User$gameSessionsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   passwordResetTokens?: boolean | Prisma.User$passwordResetTokensArgs<ExtArgs>
+  leaderboardEntries?: boolean | Prisma.User$leaderboardEntriesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -692,6 +800,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     gameSessions: Prisma.$GameSessionPayload<ExtArgs>[]
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     passwordResetTokens: Prisma.$PasswordResetTokenPayload<ExtArgs>[]
+    leaderboardEntries: Prisma.$LeaderboardPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1097,6 +1206,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   gameSessions<T extends Prisma.User$gameSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gameSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GameSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   passwordResetTokens<T extends Prisma.User$passwordResetTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$passwordResetTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  leaderboardEntries<T extends Prisma.User$leaderboardEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leaderboardEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaderboardPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1594,6 +1704,30 @@ export type User$passwordResetTokensArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.PasswordResetTokenScalarFieldEnum | Prisma.PasswordResetTokenScalarFieldEnum[]
+}
+
+/**
+ * User.leaderboardEntries
+ */
+export type User$leaderboardEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Leaderboard
+   */
+  select?: Prisma.LeaderboardSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Leaderboard
+   */
+  omit?: Prisma.LeaderboardOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LeaderboardInclude<ExtArgs> | null
+  where?: Prisma.LeaderboardWhereInput
+  orderBy?: Prisma.LeaderboardOrderByWithRelationInput | Prisma.LeaderboardOrderByWithRelationInput[]
+  cursor?: Prisma.LeaderboardWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LeaderboardScalarFieldEnum | Prisma.LeaderboardScalarFieldEnum[]
 }
 
 /**

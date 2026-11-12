@@ -6,6 +6,7 @@ import { getAlphabet, normalizeText, sha256Hex, timingSafeEqualHex } from '../li
 import { prisma } from '../prisma/client.js';
 import { chimeraFullyDone, chimeraPhase1Done, chimeraPhaseOf, parseChimeraParams, processChimeraAttempt } from './ciphers/chimera.js';
 import { buildContextHint, buildHint, getMaxHints } from './hints.service.js';
+import { recordLeaderboardEntry, timeSpentMs } from './leaderboard.service.js';
 import { decryptCiphertext, generateChallenge } from './phrase.service.js';
 import * as enCorpus from './phrases/en.js';
 import * as ukCorpus from './phrases/uk.js';
@@ -278,10 +279,22 @@ export async function submitAttempt(sessionId: string, userId: string, answer: s
 
   // Leaderboards rank on pure solve time (solvedAt - startedAt), so only
   // the attempts/counters and the solve timestamp are persisted — no score.
+  // The Hall of Fame row is upserted right here (materialized best-of), so
+  // GET /leaderboards never has to scan GameSession rows again.
+  const solvedAt = new Date();
   await prisma.gameSession.update({
     where: { id: session.id },
-    data: { attempts, status: 'SOLVED', solvedAt: new Date(), lockedUntil: null },
+    data: { attempts, status: 'SOLVED', solvedAt, lockedUntil: null },
   });
+
+  // Best-effort by design: a board write failure must never fail the solve.
+  await recordLeaderboardEntry({
+    userId: session.userId,
+    module: session.module,
+    hintsUsed: session.hintsUsed,
+    timeSpentMs: timeSpentMs(session.startedAt, solvedAt),
+    solvedAt,
+  }).catch(() => undefined);
 
   return { correct: true, plaintext, attempts, hintsUsed: session.hintsUsed };
 }

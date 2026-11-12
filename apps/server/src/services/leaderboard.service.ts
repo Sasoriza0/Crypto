@@ -1,22 +1,27 @@
-import type { LeaderboardEntry, LeaderboardModule } from '@shiftcrack/shared';
+import type { CipherModule, LeaderboardEntry, LeaderboardModule } from '@shiftcrack/shared';
+import { LeaderboardModule as LEADERBOARD_MODULES } from '@shiftcrack/shared';
+import { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../prisma/client.js';
 
 /**
- * Hall of Fame (SDD Phase 8): ranks SOLVED sessions of the two competitive
- * missions — FREQUENCY and VIGENERE — and joins the player's nickname.
+ * Hall of Fame (SDD Phase 8), materialized best-of design:
  *
- * Ranking (per spec):
+ * Every SOLVED session upserts the player's personal best into the
+ * `Leaderboard` table (one row per user × module), so GET /leaderboards is
+ * a single indexed top-N query instead of a full GameSession scan ranked in
+ * memory. Ranking contract (per spec):
  *   1. fewest hints used (hintsUsed ASC);
- *   2. shortest solve time (solvedAt - startedAt ASC).
+ *   2. shortest solve time (timeSpentMs ASC);
+ *   3. earliest solve timestamp (solvedAt ASC) as a stable tie-break.
  *
- * Prisma cannot order by the computed `solvedAt - startedAt` expression, so
- * the candidate rows are fetched and ranked in JS. Each player contributes
- * ONE entry — their personal best (fewest hints, then fastest), so a single
- * operator can never flood the board with repeat solves.
+ * Only the two competitive missions (FREQUENCY, VIGENERE — the shared
+ * `LeaderboardModule` contract) are ever recorded or read.
  */
 
 /** Hall of Fame length (the board is cut to this many entries). */
 export const LEADERBOARD_LIMIT = 50;
+
+const COMPETITIVE_MODULES: ReadonlySet<string> = new Set<string>(Object.values(LEADERBOARD_MODULES));
 
 /** Solve time in whole milliseconds; clamped at 0 for clock skew safety. */
 export function timeSpentMs(startedAt: Date, solvedAt: Date): number {
@@ -34,64 +39,81 @@ export function compareLeaderboardEntries(a: LeaderboardEntry, b: LeaderboardEnt
   return a.solvedAt < b.solvedAt ? -1 : a.solvedAt > b.solvedAt ? 1 : 0;
 }
 
-/** A solved session row as fetched from the DB (nickname joined from User). */
-export interface SolvedSessionRow {
-  nickname: string;
+export interface LeaderboardWriteInput {
+  userId: string;
+  module: CipherModule;
   hintsUsed: number;
-  startedAt: Date;
+  timeSpentMs: number;
   solvedAt: Date;
 }
 
-function toEntry(row: SolvedSessionRow): LeaderboardEntry {
+/** Prisma filter matching every stored row this new solve is strictly better than. */
+function betterThanFilter(input: LeaderboardWriteInput): Prisma.LeaderboardWhereInput {
+  const { userId, module, hintsUsed, timeSpentMs, solvedAt } = input;
   return {
-    nickname: row.nickname,
-    timeSpent: timeSpentMs(row.startedAt, row.solvedAt),
-    hintsUsed: row.hintsUsed,
-    solvedAt: row.solvedAt.toISOString(),
+    userId,
+    module,
+    OR: [
+      { hintsUsed: { gt: hintsUsed } },
+      { hintsUsed, timeSpentMs: { gt: timeSpentMs } },
+      { hintsUsed, timeSpentMs, solvedAt: { gt: solvedAt } },
+    ],
   };
 }
 
 /**
- * Pure ranking pipeline: map rows to entries, keep each player's personal
- * best, sort by the ranking contract, cut to the board limit. Exported for
- * direct unit tests — the DB fetch is the only impure step.
+ * Race-safe "upsert only if better" (SDD Phase 8 optimization): called on
+ * every SOLVED session for the competitive modules.
+ *
+ * The conditional UPDATE takes the row lock and re-evaluates its WHERE
+ * against the latest committed version, so two concurrent solves by the
+ * same player can never downgrade the stored best. When no row exists yet
+ * the UPDATE matches nothing and the INSERT runs; a P2002 from a racing
+ * writer makes the UPDATE retry against the row that writer inserted.
  */
-export function buildLeaderboard(rows: SolvedSessionRow[], limit = LEADERBOARD_LIMIT): LeaderboardEntry[] {
-  const best = new Map<string, LeaderboardEntry>();
-  for (const row of rows) {
-    const entry = toEntry(row);
-    const current = best.get(entry.nickname);
-    if (!current || compareLeaderboardEntries(entry, current) < 0) {
-      best.set(entry.nickname, entry);
-    }
+export async function recordLeaderboardEntry(input: LeaderboardWriteInput): Promise<void> {
+  if (!COMPETITIVE_MODULES.has(input.module)) return;
+
+  const data = {
+    hintsUsed: input.hintsUsed,
+    timeSpentMs: input.timeSpentMs,
+    solvedAt: input.solvedAt,
+  };
+  const where = betterThanFilter(input);
+
+  const updated = await prisma.leaderboard.updateMany({ where, data });
+  if (updated.count > 0) return;
+
+  try {
+    await prisma.leaderboard.create({ data: { ...data, userId: input.userId, module: input.module } });
+  } catch (err) {
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002')) throw err;
+    await prisma.leaderboard.updateMany({ where, data });
   }
-  return [...best.values()].sort(compareLeaderboardEntries).slice(0, limit);
 }
 
-/** GET /leaderboards — top players for one competitive module. */
+/** GET /leaderboards — top-N personal bests for one competitive module. */
 export async function getLeaderboard(module: LeaderboardModule): Promise<LeaderboardEntry[]> {
-  const rows = await prisma.gameSession.findMany({
+  const rows = await prisma.leaderboard.findMany({
     where: {
       module,
-      status: 'SOLVED',
-      solvedAt: { not: null },
       // Anonymous solves have no nickname and are not ranked.
       user: { nickname: { not: null } },
     },
+    orderBy: [{ hintsUsed: 'asc' }, { timeSpentMs: 'asc' }, { solvedAt: 'asc' }],
+    take: LEADERBOARD_LIMIT,
     select: {
       hintsUsed: true,
-      startedAt: true,
+      timeSpentMs: true,
       solvedAt: true,
       user: { select: { nickname: true } },
     },
   });
 
-  return buildLeaderboard(
-    rows.map((row) => ({
-      nickname: row.user.nickname!,
-      hintsUsed: row.hintsUsed,
-      startedAt: row.startedAt,
-      solvedAt: row.solvedAt!,
-    })),
-  );
+  return rows.map((row) => ({
+    nickname: row.user.nickname!,
+    timeSpent: row.timeSpentMs,
+    hintsUsed: row.hintsUsed,
+    solvedAt: row.solvedAt.toISOString(),
+  }));
 }

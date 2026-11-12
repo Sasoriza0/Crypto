@@ -54,7 +54,8 @@ export const ModelName = {
   User: 'User',
   PasswordResetToken: 'PasswordResetToken',
   Session: 'Session',
-  GameSession: 'GameSession'
+  GameSession: 'GameSession',
+  Leaderboard: 'Leaderboard'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -127,6 +128,19 @@ export const GameSessionScalarFieldEnum = {
 } as const
 
 export type GameSessionScalarFieldEnum = (typeof GameSessionScalarFieldEnum)[keyof typeof GameSessionScalarFieldEnum]
+
+
+export const LeaderboardScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  module: 'module',
+  hintsUsed: 'hintsUsed',
+  timeSpentMs: 'timeSpentMs',
+  solvedAt: 'solvedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeaderboardScalarFieldEnum = (typeof LeaderboardScalarFieldEnum)[keyof typeof LeaderboardScalarFieldEnum]
 
 
 export const SortOrder = {

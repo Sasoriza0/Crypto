@@ -44,6 +44,7 @@ model User {
   gameSessions        GameSession[]
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
+  leaderboardEntries  Leaderboard[]
 }
 
 // One-time password reset token (SDD §5, OWASP Forgot Password cheat sheet).
@@ -109,4 +110,27 @@ model GameSession {
   // module, filter by hints used, order by solvedAt.
   @@index([module, status, solvedAt])
   @@index([module, status, hintsUsed, solvedAt])
+}
+
+// Materialized personal-best table for the Hall of Fame (SDD Phase 8).
+// One row per user × module, written by a conditional upsert whenever a
+// game session is SOLVED. GET /leaderboards reads only this table — a
+// single indexed top-N query instead of a full GameSession scan ranked in
+// Node.js memory.
+model Leaderboard {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module      CipherModule
+  hintsUsed   Int
+  timeSpentMs Int // solvedAt - startedAt of the best solve, whole milliseconds
+  solvedAt    DateTime // timestamp of the best solve (stable tie-break)
+  updatedAt   DateTime     @updatedAt
+
+  // Exactly one best result per player per cipher module.
+  @@unique([userId, module])
+  // Covers the full ORDER BY of the board read: equality on module, then
+  // the ranking keys hintsUsed -> timeSpentMs -> solvedAt, so top-N reads
+  // are pure index scans without a sort step.
+  @@index([module, hintsUsed, timeSpentMs, solvedAt])
 }

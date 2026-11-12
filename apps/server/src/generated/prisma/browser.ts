@@ -37,3 +37,8 @@ export type Session = Prisma.SessionModel
  * 
  */
 export type GameSession = Prisma.GameSessionModel
+/**
+ * Model Leaderboard
+ * 
+ */
+export type Leaderboard = Prisma.LeaderboardModel
