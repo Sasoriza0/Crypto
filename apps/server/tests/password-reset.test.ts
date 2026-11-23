@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { resetPasswordSchema } from '@shiftcrack/shared';
-import { buildResetEmail, resetMailTransport, sendResetEmail, smtpConfigured } from '../src/services/mail.service.js';
+import {
+  buildResetEmail,
+  mailFrom,
+  resetMailTransport,
+  sendResetEmail,
+  smtpConfigured,
+} from '../src/services/mail.service.js';
 import {
   buildResetUrl,
   generateResetToken,
@@ -19,6 +25,7 @@ afterEach(() => {
   delete process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES;
   delete process.env.CLIENT_ORIGIN;
   delete process.env.SMTP_HOST;
+  delete process.env.MAIL_FROM;
   resetMailTransport();
 });
 
@@ -92,6 +99,13 @@ describe('mail service (SMTP + console fallback)', () => {
     expect(smtpConfigured()).toBe(true);
   });
 
+  it('uses MAIL_FROM from env and only then the internal default', () => {
+    delete process.env.MAIL_FROM;
+    expect(mailFrom()).toBe('ShiftCrack Security <noreply@shiftcrack.local>');
+    process.env.MAIL_FROM = 'ShiftCrack Security <ops@shiftcrack.example>';
+    expect(mailFrom()).toBe('ShiftCrack Security <ops@shiftcrack.example>');
+  });
+
   it('builds a letter with the reset link and escaped content', () => {
     const { subject, text, html } = buildResetEmail({
       to: 'agent@example.com',
@@ -107,13 +121,13 @@ describe('mail service (SMTP + console fallback)', () => {
     expect(html).toContain('&lt;script&gt;');
   });
 
-  it('falls back to the console transport and still composes the letter', async () => {
+  it('falls back to the console transport and still composes the letter with the configured MAIL_FROM', async () => {
     delete process.env.SMTP_HOST;
-    const consoleSpy = { called: false };
+    process.env.MAIL_FROM = 'ShiftCrack Security <ops@shiftcrack.example>';
+    const logs: string[] = [];
     const original = console.log;
     console.log = (...args: unknown[]) => {
-      consoleSpy.called = true;
-      void args;
+      logs.push(JSON.stringify(args));
     };
     try {
       await expect(
@@ -127,6 +141,8 @@ describe('mail service (SMTP + console fallback)', () => {
     } finally {
       console.log = original;
     }
-    expect(consoleSpy.called).toBe(true);
+    expect(logs.length).toBeGreaterThan(0);
+    expect(logs.join('\n')).toContain('ops@shiftcrack.example');
+    expect(logs.join('\n')).not.toContain('noreply@shiftcrack.local');
   });
 });

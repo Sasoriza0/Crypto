@@ -59,7 +59,7 @@ export function buildResetUrl(token: string): string {
 export async function requestPasswordReset(email: string): Promise<void> {
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user || !user.passwordHash) {
+  if (!user || !user.passwordHash || !user.email) {
     // Anti-enumeration (OWASP): unknown emails do the same work a real
     // reset does — mint a CSPRNG token, digest it — plus a randomized
     // delay shadowing the DB transaction and email send, so the two paths
@@ -83,12 +83,21 @@ export async function requestPasswordReset(email: string): Promise<void> {
     }),
   ]);
 
-  await sendResetEmail({
-    to: user.email!,
-    nickname: user.nickname,
-    resetUrl: buildResetUrl(token),
-    ttlMinutes: Math.round(ttlMs / 60_000),
-  });
+  try {
+    await sendResetEmail({
+      to: user.email,
+      nickname: user.nickname,
+      resetUrl: buildResetUrl(token),
+      ttlMinutes: Math.round(ttlMs / 60_000),
+    });
+  } catch (err) {
+    // A transport failure must never change the response: otherwise known
+    // accounts would surface as 500s while unknown ones keep answering
+    // 202 — an enumeration oracle. Log message-only (SMTP errors can
+    // carry envelope data, never credentials or the token) and keep the
+    // minted token; the next request simply replaces it.
+    console.error(`[mail] Password reset letter failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
 /**

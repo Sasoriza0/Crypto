@@ -13,7 +13,7 @@
  *
  * Run: npm run smoke --workspace @shiftcrack/server
  */
-import 'dotenv/config';
+import '../src/lib/env.js';
 import { prisma } from '../src/prisma/client.js';
 import { SESSION_COOKIE } from '../src/services/session.service.js';
 
@@ -137,8 +137,8 @@ async function main() {
   assert(dupNick.status === 409, `expected 409 on duplicate nickname, got ${dupNick.status}`);
 
   // Forgot-password: identical 202 for known and unknown emails (no
-  // enumeration oracle); the letter itself lands in the server console
-  // because SMTP is not configured locally.
+  // enumeration oracle); the letter is emailed when SMTP is configured and
+  // printed to the server console otherwise.
   const forgotKnown = await request(`${AUTH_BASE}/forgot-password`, {
     method: 'POST',
     headers: JSON_HEADERS,
@@ -242,8 +242,8 @@ async function main() {
   assert(!('plaintextHash' in created.body) && !('cipherParams' in created.body), 'secrets leaked in create response');
 
   // Wrong-attempt + hint checks happen on a session we will solve via
-  // brute-force. EASY Caesar = shift 1..3, so the solve takes at most 3
-  // attempts — and EASY sessions never lock out anyway.
+  // brute-force. Caesar shifts are the fixed balanced range 4..15, so the
+  // solve takes at most 12 attempts — and EASY sessions never lock out.
 
   // Request the first hint
   const hint = await request(`${GAME_BASE}/sessions/${sessionId}/hints`, {
@@ -261,7 +261,7 @@ async function main() {
   const ciphertext = created.body.ciphertext as string;
   let solved: Record<string, unknown> | null = null;
   const attemptLog: string[] = [];
-  for (const shift of [1, 2, 3]) {
+  for (let shift = 4; shift <= 15; shift++) {
     const plaintext = [...ciphertext]
       .map((ch) => {
         const idx = alphabet.indexOf(ch);

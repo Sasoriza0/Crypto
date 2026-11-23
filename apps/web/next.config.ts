@@ -5,6 +5,8 @@ import type { NextConfig } from 'next';
  * automatically and linting is handled by a dedicated ESLint job in CI, so
  * no extra config is required here.
  */
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  output: 'standalone',
+};
 
 export default nextConfig;

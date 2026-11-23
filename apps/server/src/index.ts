@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './lib/env.js';
 import { createApp } from './app.js';
 import { expireGameSessions } from './services/game.service.js';
 import { expirePasswordResetTokens } from './services/password-reset.service.js';

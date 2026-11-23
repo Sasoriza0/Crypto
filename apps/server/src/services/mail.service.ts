@@ -7,6 +7,10 @@ import type { Transporter } from 'nodemailer';
  * Configuration comes entirely from env (see .env.example):
  *  - SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS / MAIL_FROM
  *
+ * Env values are loaded by src/lib/env.js (root .env + apps/server/.env)
+ * before the app boots, and the transporter below is created lazily on
+ * first use — nothing here caches env at import time.
+ *
  * When SMTP_HOST is missing (local dev), the transport falls back to
  * jsonTransport and the composed letter is dumped to the console instead —
  * the full compose path still runs, so template bugs surface in dev.
@@ -20,6 +24,11 @@ export function mailFrom(): string {
   return process.env.MAIL_FROM ?? 'ShiftCrack Security <noreply@shiftcrack.local>';
 }
 
+function smtpPort(): number {
+  const raw = Number(process.env.SMTP_PORT);
+  return Number.isFinite(raw) && raw > 0 ? raw : 587;
+}
+
 let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter {
@@ -27,7 +36,7 @@ function getTransporter(): Transporter {
   if (smtpConfigured()) {
     transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT ?? 587),
+      port: smtpPort(),
       secure: process.env.SMTP_SECURE === 'true',
       auth: process.env.SMTP_USER
         ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
