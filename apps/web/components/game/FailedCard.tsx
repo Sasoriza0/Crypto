@@ -21,7 +21,7 @@ export function FailedCard({ status }: { status: SessionStatus }) {
             {expired ? t('game.expired.title') : t('game.failed.title')}
           </h2>
         </div>
-        <span className="rotate-[-4deg] border-2 border-red-700 px-2 py-1 font-mono text-[10px] font-bold tracking-[0.2em] text-red-700">
+        <span className="ml-3 shrink-0 rotate-[-4deg] border-2 border-red-700 px-2 py-1 font-mono text-[10px] font-bold tracking-[0.2em] text-red-700">
           {expired ? t('game.expired.stamp') : t('game.failed.stamp')}
         </span>
       </div>

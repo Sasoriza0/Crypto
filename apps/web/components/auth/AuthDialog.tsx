@@ -115,7 +115,7 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
       >
         <span
           aria-hidden
-          className="absolute -top-2 right-1 origin-top-right rotate-[2deg] scale-75 border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 md:-right-4 md:-top-4 md:scale-100"
+          className="absolute -top-2 right-1 origin-top-right rotate-[2deg] scale-75 border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 max-[675px]:hidden md:-right-4 md:-top-4 md:scale-100"
         >
           {t('auth.dialog.stamp')}
         </span>

@@ -30,7 +30,7 @@ export function SolvedCard() {
           <MetaLabel>{t('setup.brief')}</MetaLabel>
           <h2 className="mt-2 font-serif text-3xl font-bold">{t('game.solved.title')}</h2>
         </div>
-        <span className="rotate-[-4deg] border-2 border-red-700 px-2 py-1 font-mono text-[10px] font-bold tracking-[0.2em] text-red-700">
+        <span className="ml-3 shrink-0 rotate-[-4deg] border-2 border-red-700 px-2 py-1 font-mono text-[10px] font-bold tracking-[0.2em] text-red-700">
           {t('game.solved.stamp')}
         </span>
       </div>

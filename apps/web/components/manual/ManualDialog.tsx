@@ -35,7 +35,7 @@ export function ManualDialog({ open, onClose }: { open: boolean; onClose: () => 
       <div className="relative flex max-h-[85vh] w-full max-w-2xl flex-col border-2 border-ink bg-paper p-4 shadow-[6px_6px_0_rgba(66,54,36,0.2)] md:p-6">
         <span
           aria-hidden
-          className="absolute -top-3 right-2 rotate-[2deg] border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700"
+          className="absolute -top-3 right-2 rotate-[2deg] border-2 border-red-700 bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 max-[675px]:hidden"
         >
           {t('manual.stamp')}
         </span>

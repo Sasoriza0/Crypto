@@ -37,6 +37,7 @@ export function createApp() {
     helmet({
       contentSecurityPolicy: isProd
         ? {
+            useDefaults: false,
             directives: {
               defaultSrc: ["'none'"],
               frameAncestors: ["'none'"],
@@ -47,10 +48,17 @@ export function createApp() {
     }),
   );
 
+  // The API only exposes GET/POST JSON routes and the browser sends the
+  // session cookie, so keep CORS to exactly that surface (no wildcard, no
+  // arbitrary method/header reflection). A single allowed origin is echoed
+  // back — never `*` — which is required when credentials are enabled.
   app.use(
     cors({
       origin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
       credentials: true,
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type'],
+      optionsSuccessStatus: 204,
     }),
   );
 

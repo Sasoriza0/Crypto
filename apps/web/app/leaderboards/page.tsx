@@ -96,7 +96,7 @@ export default function LeaderboardsPage() {
       <div className="relative border-2 border-ink bg-card p-6 shadow-[5px_5px_0_rgba(66,54,36,0.16)] sm:p-8">
         <span
           aria-hidden
-          className="absolute -top-3 right-2 rotate-[2deg] border-2 border-red-700 bg-card px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700"
+          className="absolute -top-3 right-2 rotate-[2deg] border-2 border-red-700 bg-card px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 max-[675px]:hidden"
         >
           {t('leaderboards.stamp')}
         </span>

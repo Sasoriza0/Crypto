@@ -183,7 +183,7 @@ export function Header() {
           the header flow, so switching languages cannot shift the layout.
           Pinned inside the corner (no negative offsets) so the rotated
           sticker never overhangs the frame and clips at the viewport. */}
-      <div className="pointer-events-none absolute right-1 top-1 rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700 sm:right-2 sm:top-2">
+      <div className="pointer-events-none absolute right-1 top-1 hidden rotate-[-12deg] whitespace-nowrap border-2 border-red-700 px-3 py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-red-700 sm:right-2 sm:top-2 min-[676px]:block">
         {t('header.topSecret')}
       </div>
 
