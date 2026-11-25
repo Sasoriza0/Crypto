@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shiftcrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
+      POSTGRES_DB: ${POSTGRES_DB:-shiftcrack}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    # Isolated on internal Docker network — no port 5432 published to host
+
+  server:
+    image: ${SERVER_IMAGE:-ghcr.io/sasoriza0/shiftcrack-server:latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Bound to loopback only so external traffic routes through Nginx reverse proxy
+      - "127.0.0.1:${SERVER_PORT:-4000}:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-shiftcrack}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-shiftcrack}?schema=public}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-https://shiftcrack.online}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET required}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-24}
+      GAME_SESSION_TTL_MINUTES: ${GAME_SESSION_TTL_MINUTES:-1440}
+      BCRYPT_COST: ${BCRYPT_COST:-12}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      RATE_LIMIT_ATTEMPTS_MAX: ${RATE_LIMIT_ATTEMPTS_MAX:-10}
+      RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-10}
+      RATE_LIMIT_PASSWORD_RESET_MAX: ${RATE_LIMIT_PASSWORD_RESET_MAX:-5}
+      PASSWORD_RESET_TOKEN_TTL_MINUTES: ${PASSWORD_RESET_TOKEN_TTL_MINUTES:-30}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-ShiftCrack Security <noreply@shiftcrack.online>}
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/sasoriza0/shiftcrack-web:latest}
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      # Bound to loopback only so external traffic routes through Nginx reverse proxy
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api/v1}
+
+volumes:
+  pgdata:
