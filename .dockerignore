@@ -1,0 +1,44 @@
+# Version control & CI
+.git
+.gitignore
+.github
+
+# Dependencies
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+
+# Build outputs
+dist
+build
+.next
+apps/web/.next
+packages/*/dist
+apps/*/dist
+out
+
+# Environment & secrets (never bake real secrets into images)
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test & coverage
+coverage
+.nyc_output
+
+# Temporary & system files
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+apps/*/*.tsbuildinfo
+packages/*/*.tsbuildinfo
+.cache
